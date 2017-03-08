@@ -92,7 +92,7 @@ pybmol = geomopt(pybmol, 'mmff94s')
 mins_loc = []
 cors_loc = []
 #------------------------------------------------
-nrot = 5
+nrot = 1
 #------------------------------------------------
 rb1 = [7,6,14,19]
 rb2 = [6,7,12,18]
@@ -106,8 +106,6 @@ for angle_i in diangle_loc:
 #------------------------------------------------
     for angle_j in diangle:
     #--------------------------------------------
-        print angle_i, angle_j
-        #--------------------------------------------
         molr = pybmol.clone
         molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
         molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
@@ -156,19 +154,19 @@ if (iproc == 0):
     f.close()
     #--------------------------------------------
 
-
-#------------------------------------------------
-#          convert pymol to asemol              #
-#------------------------------------------------
-# asemol = pyb2ase(pybmol, iproc)
-#------------------------------------------------
-
 #-----------------------------------------
 # quantum NWChem
 #-----------------------------------------
-# asemol.calc = NWChem(xc='B3LYP', basis='STO-3G')
-# opt = QuasiNewton(asemol, trajectory='1001.traj')
-# opt.run(fmax=1.0)
+configId = range(0, len(mins))
+nblock = int(math.ceil(float(len(mins))/nproc) + 1.0e-10)
+configId_loc = configId[iproc*nblock : min((iproc+1)*nblock, len(mins))]
+#-----------------------------------------
+for i in configId_loc:
+    asemol = pyb2ase(mins[i], iproc)
+    asemol.calc = NWChem(xc="B3LYP", basis="6-31G*", label="nwchem_tmp/nwchem"+"{:04d}".format(i))
+    opt = BFGS(asemol)
+    opt.run(fmax=3.0e-4)
+    ase.io.write("nwchem_minimals/1001_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
 #-----------------------------------------
 
 #-----------------------------------------
