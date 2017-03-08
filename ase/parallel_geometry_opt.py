@@ -92,7 +92,7 @@ pybmol = geomopt(pybmol, 'mmff94s')
 mins_loc = []
 cors_loc = []
 #------------------------------------------------
-nrot = 1
+nrot = 2
 #------------------------------------------------
 rb1 = [7,6,14,19]
 rb2 = [6,7,12,18]
@@ -148,7 +148,7 @@ if (iproc == 0):
     #--------------------------------------------
     for i in range(0, len(mins)):
         for j in range(0, len(mins)):
-            f.write("{:7.2f}".format(getRMSD(mins[i], mins[j])))
+			f.write("%7.2f" % (getRMSD(mins[i], mins[j])))
         f.write("\n")
     #--------------------------------------------
     f.close()
@@ -163,11 +163,13 @@ configId_loc = configId[iproc*nblock : min((iproc+1)*nblock, len(mins))]
 #-----------------------------------------
 for i in configId_loc:
     asemol = pyb2ase(mins[i], iproc)
-    asemol.calc = NWChem(xc="B3LYP", basis="6-31G*", label="nwchem_tmp/nwchem"+"{:04d}".format(i))
+    asemol.calc = NWChem(xc="B3LYP", basis="STO-3G", label="nwchem_tmp/nwchem"+"{:04d}".format(i))
     opt = BFGS(asemol)
     opt.run(fmax=3.0e-4)
     ase.io.write("nwchem_minimals/1001_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
 #-----------------------------------------
+
+MPI.COMM_WORLD.Barrier()
 
 #-----------------------------------------
 # show final molecule

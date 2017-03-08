@@ -27,8 +27,8 @@ def geomopt(pybmol, forcefield):
     FF.Setup(pybmol.OBMol)
     EE = FF.Energy()
     dE = EE
-    while(abs(dE / EE) > 1.0e-8):
-        pybmol.localopt(forcefield=forcefield, steps=1000)
+    while(abs(dE / EE) > 1.0e-3):
+        pybmol.localopt(forcefield=forcefield, steps=100)
         dE = FF.Energy() - EE
         EE = FF.Energy()
     #--------------
@@ -73,7 +73,7 @@ pybmol = geomopt(pybmol, 'mmff94s')
 #------------------------------------------------
 mins = []
 #------------------------------------------------
-nrot = 1
+nrot = 2
 #------------------------------------------------
 rb1 = [7,6,14,19]
 rb2 = [6,7,12,18]
@@ -103,7 +103,7 @@ f = open("RMSD.dat", "w")
 #--------------------------------------------
 for i in range(0, len(mins)):
     for j in range(0, len(mins)):
-        f.write("{:7.2f}".format(getRMSD(mins[i], mins[j])))
+        f.write("%7.2f" % (getRMSD(mins[i], mins[j])))
     f.write("\n")
 #--------------------------------------------
 f.close()
