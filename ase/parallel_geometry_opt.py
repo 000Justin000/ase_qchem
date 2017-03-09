@@ -87,7 +87,6 @@ rb1 = [7,6,14,19]     # dihedral idx
 rb2 = [6,7,12,18]     # dihedral idx
 #------------------------------------------------
 
-
 #------------------------------------------------
 #           initialize mpi parameters           #
 #------------------------------------------------
@@ -163,7 +162,7 @@ if (iproc == 0):
     #--------------------------------------------
     for i in range(0, len(mins)):
         for j in range(0, len(mins)):
-	    f.write("%7.2f" % (getRMSD(mins[i], mins[j])))
+            f.write("%7.2f" % (getRMSD(mins[i], mins[j])))
         f.write("\n")
     #--------------------------------------------
     f.close()
@@ -197,8 +196,8 @@ if (iproc == 0):
     #--------------------------------------------
     for i in range(0, len(energies)):
         for j in range(0, len(energies[i])):
-	    f.write("config %04d:  %15.7f\n" % (configId, energies[i][j]))
-	    configId = configId + 1
+            f.write("config %04d:    %15.7f\n" % (configId, energies[i][j]))
+            configId = configId + 1
     #--------------------------------------------
     f.close()
     #--------------------------------------------
