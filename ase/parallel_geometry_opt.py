@@ -24,13 +24,13 @@ def pyb2ase(pybmol, pid):
     return asemol
 
 #--------------------------------------------------
-def geomopt(pybmol, forcefield):
-    FF = pybel._forcefields[forcefield]
+def geomOptMM(pybmol, MMFF, tol):
+    FF = pybel._forcefields[MMFF]
     FF.Setup(pybmol.OBMol)
     EE = FF.Energy()
     dE = EE
-    while(abs(dE / EE) > 1.0e-8):
-        pybmol.localopt(forcefield=forcefield, steps=1000)
+    while(abs(dE / EE) > tol):
+        pybmol.localopt(forcefield=MMFF, steps=1000)
         dE = FF.Energy() - EE
         EE = FF.Energy()
     #--------------
@@ -67,6 +67,27 @@ def getPybmol(pybmol, coords):
 #           main function start here            #
 #################################################
 
+
+#------------------------------------------------
+#                 customize area                #
+#------------------------------------------------
+jobname = "1001"
+#------------------------------------------------
+MMFF    = "mmff94s"
+QMFUNC  = "B3LYP"
+QMBASIS = "STO-3G",
+#------------------------------------------------
+MMtol = 1.0e-8
+QMtol = 1.0e-1
+ertol = 1.0e-10
+#------------------------------------------------
+nrot = 12             # number of angular discret
+#------------------------------------------------
+rb1 = [7,6,14,19]     # dihedral idx
+rb2 = [6,7,12,18]     # dihedral idx
+#------------------------------------------------
+
+
 #------------------------------------------------
 #           initialize mpi parameters           #
 #------------------------------------------------
@@ -78,27 +99,21 @@ print "nproc = ", nproc, "iproc = ", iproc
 #------------------------------------------------
 #         read the molecule with pybel          #
 #------------------------------------------------
-pybmol = pybel.readfile("pdb", "1001.pdb").next()
+pybmol = pybel.readfile("pdb", jobname+".pdb").next()
 #------------------------------------------------
 
 #------------------------------------------------
 #    geometry optimization MM using openbabel   #
 #------------------------------------------------
-pybmol = geomopt(pybmol, 'mmff94s')
+pybmol = geomOptMM(pybmol, MMFF, MMtol)
 #------------------------------------------------
-
 
 #------------------------------------------------
 mins_loc = []
 cors_loc = []
 #------------------------------------------------
-nrot = 2
-#------------------------------------------------
-rb1 = [7,6,14,19]
-rb2 = [6,7,12,18]
-#------------------------------------------------
 diangle = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
-nblock = int(math.ceil(float(nrot)/nproc) + 1.0e-10)
+nblock = int(math.ceil(float(nrot)/nproc) + ertol)
 diangle_loc = diangle[iproc*nblock:min((iproc+1)*nblock, nrot)]
 diangle_loc = diangle[iproc::nproc]
 #------------------------------------------------
@@ -109,7 +124,7 @@ for angle_i in diangle_loc:
         molr = pybmol.clone
         molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
         molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
-        molr = geomopt(molr, 'mmff94s')
+        molr = geomOptMM(molr, MMFF, MMtol)
         #--------------------------------------------
         unique = True
         #--------------------------------------------
@@ -158,16 +173,35 @@ if (iproc == 0):
 # quantum NWChem
 #-----------------------------------------
 configId = range(0, len(mins))
-nblock = int(math.ceil(float(len(mins))/nproc) + 1.0e-10)
+nblock = int(math.ceil(float(len(mins))/nproc) + ertol)
 configId_loc = configId[iproc*nblock : min((iproc+1)*nblock, len(mins))]
+energies_loc = []
 #-----------------------------------------
 for i in configId_loc:
     asemol = pyb2ase(mins[i], iproc)
-    asemol.calc = NWChem(xc="B3LYP", basis="STO-3G", label="nwchem_tmp/nwchem"+"{:04d}".format(i))
+    asemol.calc = NWChem(xc=QMFUNC, basis=QMBASIS, label="nwchem_tmp/nwchem"+"{:04d}".format(iproc))
     opt = BFGS(asemol)
-    opt.run(fmax=3.0e-4)
-    ase.io.write("nwchem_minimals/1001_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
+    opt.run(fmax=QMtol)
+	energies_loc.append(asemol.get_total_energy())
+    ase.io.write("nwchem_minimals/"+jobname+"_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
 #-----------------------------------------
+
+#------------------------------------------------
+energies = MPI.COMM_WORLD.allgather(energies_loc)
+#------------------------------------------------
+if (iproc == 0):
+#------------------------------------------------
+    f = open("nwchem_minimals/"+jobname+"_energies", "w")
+    #--------------------------------------------
+	configId = 0
+    #--------------------------------------------
+    for i in range(0, len(energies)):
+        for j in range(0, len(energies[i])):
+			f.write("config %04d:  %15.7f\n" % (configId, energies[i][j]))
+			configId = configId + 1
+    #--------------------------------------------
+    f.close()
+    #--------------------------------------------
 
 MPI.COMM_WORLD.Barrier()
 
