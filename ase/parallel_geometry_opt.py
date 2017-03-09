@@ -178,7 +178,7 @@ energies_loc = []
 #-----------------------------------------
 for i in configId_loc:
     asemol = pyb2ase(mins[i], iproc)
-    asemol.calc = NWChem(xc=QMFUNC, basis=QMBASIS, label="nwchem_tmp/nwchem"+"{:04d}".format(iproc))
+    asemol.calc = NWChem(xc='B3LYP', basis='STO-3G', label="tmp_nwchem"+"{:04d}".format(iproc)+"/nwchem"+"{:04d}".format(i))
     opt = BFGS(asemol)
     opt.run(fmax=QMtol)
     energies_loc.append(asemol.get_total_energy())
