@@ -182,7 +182,7 @@ for i in configId_loc:
     asemol.calc = NWChem(xc=QMFUNC, basis=QMBASIS, label="nwchem_tmp/nwchem"+"{:04d}".format(iproc))
     opt = BFGS(asemol)
     opt.run(fmax=QMtol)
-	energies_loc.append(asemol.get_total_energy())
+    energies_loc.append(asemol.get_total_energy())
     ase.io.write("nwchem_minimals/"+jobname+"_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
 #-----------------------------------------
 
@@ -193,12 +193,12 @@ if (iproc == 0):
 #------------------------------------------------
     f = open("nwchem_minimals/"+jobname+"_energies", "w")
     #--------------------------------------------
-	configId = 0
+    configId = 0
     #--------------------------------------------
     for i in range(0, len(energies)):
         for j in range(0, len(energies[i])):
-			f.write("config %04d:  %15.7f\n" % (configId, energies[i][j]))
-			configId = configId + 1
+	    f.write("config %04d:  %15.7f\n" % (configId, energies[i][j]))
+	    configId = configId + 1
     #--------------------------------------------
     f.close()
     #--------------------------------------------
