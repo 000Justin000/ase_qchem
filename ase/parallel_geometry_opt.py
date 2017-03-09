@@ -163,7 +163,7 @@ if (iproc == 0):
     #--------------------------------------------
     for i in range(0, len(mins)):
         for j in range(0, len(mins)):
-			f.write("%7.2f" % (getRMSD(mins[i], mins[j])))
+	    f.write("%7.2f" % (getRMSD(mins[i], mins[j])))
         f.write("\n")
     #--------------------------------------------
     f.close()
