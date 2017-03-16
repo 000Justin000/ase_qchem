@@ -74,14 +74,14 @@ def getPybmol(pybmol, coords):
 jobname = "1001"
 #------------------------------------------------
 MMFF    = "mmff94s"
-QMFUNC  = "B3LYP"
-QMBASIS = "STO-3G",
+QMFUNC  = 'B3LYP'
+QMBASIS = '6-31G*'
 #------------------------------------------------
 MMtol = 1.0e-8
-QMtol = 1.0e-1
+QMtol = 4.5e-3
 ertol = 1.0e-10
 #------------------------------------------------
-nrot = 12             # number of angular discret
+nrot = 36             # number of angular discret
 #------------------------------------------------
 rb1 = [7,6,14,19]     # dihedral idx
 rb2 = [6,7,12,18]     # dihedral idx
@@ -92,7 +92,6 @@ rb2 = [6,7,12,18]     # dihedral idx
 #------------------------------------------------
 nproc = MPI.COMM_WORLD.Get_size()
 iproc = MPI.COMM_WORLD.Get_rank()
-print "nproc = ", nproc, "iproc = ", iproc
 #------------------------------------------------
 
 #------------------------------------------------
@@ -178,11 +177,11 @@ energies_loc = []
 #-----------------------------------------
 for i in configId_loc:
     asemol = pyb2ase(mins[i], iproc)
-    asemol.calc = NWChem(xc='B3LYP', basis='STO-3G', label="tmp_nwchem"+"{:04d}".format(iproc)+"/nwchem"+"{:04d}".format(i))
+    asemol.calc = NWChem(xc=QMFUNC, basis=QMBASIS, label="tmp_nwchem"+"{:04d}".format(iproc)+"/nwchem"+"{:04d}".format(i))
     opt = BFGS(asemol)
     opt.run(fmax=QMtol)
     energies_loc.append(asemol.get_total_energy())
-    ase.io.write("nwchem_minimals/"+jobname+"_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
+    ase.io.write("nwchem_minimals_"+jobname+"_"+QMBASIS+"/"+jobname+"_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
 #-----------------------------------------
 
 #------------------------------------------------
@@ -190,7 +189,7 @@ energies = MPI.COMM_WORLD.allgather(energies_loc)
 #------------------------------------------------
 if (iproc == 0):
 #------------------------------------------------
-    f = open("nwchem_minimals/"+jobname+"_energies", "w")
+    f = open("nwchem_minimals_"+jobname+"_"+QMBASIS+"/"+jobname+"_energies", "w")
     #--------------------------------------------
     configId = 0
     #--------------------------------------------
