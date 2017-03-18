@@ -1,5 +1,5 @@
 #--------------------------------------------------
-import os, math, numpy
+import sys, os, math, numpy
 import openbabel, pybel, ase
 #--------------------------------------------------
 from mpi4py import MPI
@@ -11,7 +11,7 @@ from ase.optimize import QuasiNewton
 from ase.calculators.lj import LennardJones
 from ase.calculators.emt import EMT
 from ase.calculators.lammpsrun import LAMMPS
-from ase.calculators.nwchem import NWChem
+from ase.calculators.qchem import QChem
 from ase.constraints import FixInternals, Hookean
 #--------------------------------------------------
 
@@ -24,15 +24,27 @@ def pyb2ase(pybmol, pid):
     return asemol
 
 #--------------------------------------------------
-def geomOptMM(pybmol, MMFF, tol):
+def geomOptMM(pybmol, tcs, MMFF, tol):
+    #----------------------------------------
+    constraints = openbabel.OBFFConstraints()
+    #----------------------------------------
+    if tcs is not None:
+        for tc in tcs:
+            constraints.AddTorsionConstraint(tc[0][0],tc[0][1],tc[0][2],tc[0][3], tc[1]*(360/(2*math.pi)))
+    #----------------------------------------
     FF = pybel._forcefields[MMFF]
-    FF.Setup(pybmol.OBMol)
+    FF.Setup(pybmol.OBMol, constraints)
+    FF.SetConstraints(constraints)
+    #----------------------------------------
     EE = FF.Energy()
     dE = EE
+    #----------------------------------------
     while(abs(dE / EE) > tol):
-        pybmol.localopt(forcefield=MMFF, steps=1000)
+        FF.ConjugateGradients(1000)
         dE = FF.Energy() - EE
         EE = FF.Energy()
+    #--------------
+    FF.GetCoordinates(pybmol.OBMol)
     #--------------
     return pybmol
 
@@ -71,7 +83,10 @@ def getPybmol(pybmol, coords):
 #------------------------------------------------
 #                 customize area                #
 #------------------------------------------------
-jobname = "1001"
+jobname = str(sys.argv[1])
+#------------------------------------------------
+rb1 = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])]     # dihedral idx
+rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]     # dihedral idx
 #------------------------------------------------
 MMFF    = "mmff94s"
 QMFUNC  = 'B3LYP'
@@ -82,9 +97,6 @@ QMtol = 4.5e-3
 ertol = 1.0e-10
 #------------------------------------------------
 nrot = 36             # number of angular discret
-#------------------------------------------------
-rb1 = [7,6,14,19]     # dihedral idx
-rb2 = [6,7,12,18]     # dihedral idx
 #------------------------------------------------
 
 #------------------------------------------------
@@ -103,7 +115,7 @@ pybmol = pybel.readfile("pdb", jobname+".pdb").next()
 #------------------------------------------------
 #    geometry optimization MM using openbabel   #
 #------------------------------------------------
-pybmol = geomOptMM(pybmol, MMFF, MMtol)
+pybmol = geomOptMM(pybmol, None, MMFF, MMtol)
 #------------------------------------------------
 
 #------------------------------------------------
@@ -122,7 +134,7 @@ for angle_i in diangle_loc:
         molr = pybmol.clone
         molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
         molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
-        molr = geomOptMM(molr, MMFF, MMtol)
+        molr = geomOptMM(molr, [[rb1, angle_i]], MMFF, MMtol)
         #--------------------------------------------
         unique = True
         #--------------------------------------------
@@ -168,7 +180,7 @@ if (iproc == 0):
     #--------------------------------------------
 
 #-----------------------------------------
-# quantum NWChem
+# quantum qchem
 #-----------------------------------------
 configId = range(0, len(mins))
 nblock = int(math.ceil(float(len(mins))/nproc) + ertol)
@@ -177,11 +189,20 @@ energies_loc = []
 #-----------------------------------------
 for i in configId_loc:
     asemol = pyb2ase(mins[i], iproc)
-    asemol.calc = NWChem(xc=QMFUNC, basis=QMBASIS, label="tmp_nwchem"+"{:04d}".format(iproc)+"/nwchem"+"{:04d}".format(i))
-    opt = BFGS(asemol)
-    opt.run(fmax=QMtol)
-    energies_loc.append(asemol.get_total_energy())
-    ase.io.write("nwchem_minimals_"+jobname+"_"+QMBASIS+"/"+jobname+"_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
+    calc = QChem(xc=QMFUNC, 
+                 basis=QMBASIS,
+                 task='optimization',
+                 symmetry=False,
+                 thresh=12,
+                 scf_convergence=8,
+                 maxfile=128,
+                 mem_static=400,
+                 mem_total=4000,
+                 label="tmp_qchem"+"{:04d}".format(iproc)+"/qchem"+"{:04d}".format(i))
+    asemol, E = calc.run(asemol)
+    energies_loc.append(E)
+    ase.io.write("qchem_minimals_"+jobname+"_"+QMBASIS+"/"+jobname+"_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
+    print i
 #-----------------------------------------
 
 #------------------------------------------------
@@ -189,7 +210,7 @@ energies = MPI.COMM_WORLD.allgather(energies_loc)
 #------------------------------------------------
 if (iproc == 0):
 #------------------------------------------------
-    f = open("nwchem_minimals_"+jobname+"_"+QMBASIS+"/"+jobname+"_energies", "w")
+    f = open("qchem_minimals_"+jobname+"_"+QMBASIS+"/"+jobname+"_energies", "w")
     #--------------------------------------------
     configId = 0
     #--------------------------------------------

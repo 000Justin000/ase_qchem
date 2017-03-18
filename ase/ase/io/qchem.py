@@ -11,31 +11,34 @@ def read_qchem_opt_output(filename):
 
     lines = f.readlines()
 
+    atoms  = None
+    Efinal = None
+
     i = 0
     natoms = -1
     while i < len(lines):
         #------------------------------------------------
         if (natoms == -1):
-        if lines[i].find("NAtoms") >= 0:
-            natoms = int(lines[i + 1].split()[0])
+            if lines[i].find("NAtoms") >= 0:
+                natoms = int(lines[i + 1].split()[0])
         #------------------------------------------------
         if lines[i].find("Final energy is") >= 0:
             Efinal = float(lines[i].split()[3])
         #------------------------------------------------
         if lines[i].find("OPTIMIZATION CONVERGED") >= 0:
-        if (natoms == -1):
-        raise ValueError("Have not find keyword: NAtoms")
+            if (natoms == -1):
+                raise ValueError("Have not find keyword: NAtoms")
             else:
-        string = ''
-        string += (str(natoms) + "\n")
-        string += "\n"
-        for j in range(5, natoms + 5):
-            xyzstring = lines[i + j]
-            content = xyzstring.split()
-            string += (content[1] + "    " + content[2] + "    " + content[3] + "    " + content[4] + "\n")
-        atoms = read(StringIO(string), format='xyz')
-        atoms.set_cell((0., 0., 0.))  # no unit cell defined
-        i += natoms + 5
+                string = ''
+                string += (str(natoms) + "\n")
+                string += "\n"
+                for j in range(5, natoms + 5):
+                    xyzstring = lines[i + j]
+                    content = xyzstring.split()
+                    string += (content[1] + "    " + content[2] + "    " + content[3] + "    " + content[4] + "\n")
+                atoms = read(StringIO(string), format='xyz')
+                atoms.set_cell((0., 0., 0.))  # no unit cell defined
+                i += natoms + 5
         else:
             i += 1
 

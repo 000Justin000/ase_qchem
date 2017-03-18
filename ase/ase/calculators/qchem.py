@@ -3,6 +3,7 @@ http://www.nwchem-sw.org/
 """
 
 import os
+import subprocess
 
 import numpy as np
 
@@ -19,7 +20,6 @@ class QChem(FileIOCalculator):
     #-----------------------------------------
     jobtype     = {'optimization' : 'OPT'}
     exchange    = {'B3LYP'  : 'B3LYP'}
-    correlation = {'B3LYP'  : 'B3LYP'}
     basis       = {'STO-3G' : 'STO-3G',
                    '3-21G'  : '3-21G',
                    '6-31G'  : '6-31G',
@@ -68,7 +68,6 @@ class QChem(FileIOCalculator):
         f.write("$rem\n")
         f.write("JOBTYPE          " + self.jobtype[p.task]   + "\n")
         f.write("EXCHANGE         " + self.exchange[p.xc]    + "\n")
-        f.write("CORRELATION      " + self.correlation[p.xc] + "\n")
         f.write("BASIS            " + self.basis[p.basis]    + "\n")
         f.write("SYMMETRY         " + str(p.symmetry)        + "\n")
         f.write("THRESH           " + str(p.thresh)          + "\n")
@@ -83,7 +82,7 @@ class QChem(FileIOCalculator):
         if (p.task == "optimization"):
             return read_qchem_opt_output(self.label + ".out")
 
-    def run_opt(self, atoms):
+    def run(self, atoms):
         self.write_input(atoms)
         if self.command is None:
             raise RuntimeError('Please set $%s environment variable ' %
