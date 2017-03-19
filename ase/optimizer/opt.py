@@ -119,13 +119,16 @@ pybmol = geomOptMM(pybmol, None, MMFF, MMtol)
 #------------------------------------------------
 
 #------------------------------------------------
+dir_name = "qchem_opt_"+jobname+"_"+QMBASIS
+#------------------------------------------------
+
+#------------------------------------------------
 mins_loc = []
 cors_loc = []
 #------------------------------------------------
 diangle = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
 nblock = int(math.ceil(float(nrot)/nproc) + ertol)
 diangle_loc = diangle[iproc*nblock:min((iproc+1)*nblock, nrot)]
-diangle_loc = diangle[iproc::nproc]
 #------------------------------------------------
 for angle_i in diangle_loc:
 #------------------------------------------------
@@ -134,7 +137,7 @@ for angle_i in diangle_loc:
         molr = pybmol.clone
         molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
         molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
-        molr = geomOptMM(molr, [[rb1, angle_i]], MMFF, MMtol)
+        molr = geomOptMM(molr, None, MMFF, MMtol)
         #--------------------------------------------
         unique = True
         #--------------------------------------------
@@ -201,7 +204,7 @@ for i in configId_loc:
                  label="tmp_qchem"+"{:04d}".format(iproc)+"/qchem"+"{:04d}".format(i))
     asemol, E = calc.run(asemol)
     energies_loc.append(E)
-    ase.io.write("qchem_minimals_"+jobname+"_"+QMBASIS+"/"+jobname+"_minimal_" + "{:04d}".format(i) + ".pdb", asemol)
+    ase.io.write(dir_name+"/config_" + "{:04d}".format(i) + ".pdb", asemol)
     print i
 #-----------------------------------------
 
@@ -210,7 +213,7 @@ energies = MPI.COMM_WORLD.allgather(energies_loc)
 #------------------------------------------------
 if (iproc == 0):
 #------------------------------------------------
-    f = open("qchem_minimals_"+jobname+"_"+QMBASIS+"/"+jobname+"_energies", "w")
+    f = open(dir_name+"/energies", "w")
     #--------------------------------------------
     configId = 0
     #--------------------------------------------
