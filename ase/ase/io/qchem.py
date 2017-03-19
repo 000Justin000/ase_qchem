@@ -83,7 +83,7 @@ def read_qchem(filename):
 
 
 
-def write_qchem(filename, atoms, geometry=None):
+def write_qchem(filename, atoms, comment=None):
     """Method to write nwchem coord file."""
 
     if isinstance(filename, basestring):
@@ -91,9 +91,9 @@ def write_qchem(filename, atoms, geometry=None):
     else:  # Assume it's a 'file-like object'
         f = filename
 
-    if geometry is not None:
+    if comment is not None:
         f.write('$comment\n')
-        f.write(str(geometry)+'\n')
+        f.write(str(comment)+'\n')
         f.write('$end\n\n')
 
     f.write('$molecule\n')

@@ -5,6 +5,7 @@ http://www.nwchem-sw.org/
 import os
 import subprocess
 
+import math
 import numpy as np
 
 from warnings import warn
@@ -24,12 +25,17 @@ class QChem(FileIOCalculator):
                    '3-21G'  : '3-21G',
                    '6-31G'  : '6-31G',
                    '6-31G*' : '6-31G*'}
+    dft_d       = {None     : 'FALSE',
+                   'd2'     : 'EMPIRICAL_GRIMME',
+                   'd3'     : 'EMPIRICAL_GRIMME3'}
     #-----------------------------------------
 
     default_parameters = dict(
         xc='LDA',
+        disp=None,
         task='optimization',
-        geometry=None,
+        comment=None,
+        tcs=None,
         symmetry=False,
         basis='STO-3G',
         thresh=12,
@@ -63,11 +69,22 @@ class QChem(FileIOCalculator):
         p = self.parameters
         p.write(self.label + '.ase')
         f = open(self.label + '.in', 'w')
-        write_qchem(f, atoms, p.geometry)
+        write_qchem(f, atoms, p.comment)
+        
+        if p.tcs is not None:
+            f.write("$opt\n")
+            f.write("CONSTRAINT\n")
+            for tc in p.tcs:
+                di_angle = tc[1]*360/(2*math.pi)
+                di_angle = di_angle - int(di_angle/180.0) * 360.0
+                f.write("tors    " + str(tc[0][0]) + "    " + str(tc[0][1]) + "    " + str(tc[0][2]) + "    " + str(tc[0][3]) + "    " + str(di_angle) + "\n")
+            f.write("ENDCONSTRAINT\n")
+            f.write("$end\n\n")
 
         f.write("$rem\n")
         f.write("JOBTYPE          " + self.jobtype[p.task]   + "\n")
         f.write("EXCHANGE         " + self.exchange[p.xc]    + "\n")
+        f.write("DFT_D            " + self.dft_d[p.disp]     + "\n")
         f.write("BASIS            " + self.basis[p.basis]    + "\n")
         f.write("SYMMETRY         " + str(p.symmetry)        + "\n")
         f.write("THRESH           " + str(p.thresh)          + "\n")
