@@ -19,20 +19,23 @@ class QChem(FileIOCalculator):
     implemented_properties = ['optimization']
     command = 'qchem PREFIX.in > PREFIX.out'
     #-----------------------------------------
-    jobtype     = {'optimization' : 'OPT'}
-    exchange    = {'B3LYP'  : 'B3LYP'}
+    jobtype     = {'optimization' : 'OPT',
+                   'frequency'    : 'FREQ',
+                   'single_point' : 'SP'}
+    method      = {'B3LYP'  : 'B3LYP',
+                   'MP2'    : 'MP2'}
     basis       = {'STO-3G' : 'STO-3G',
                    '3-21G'  : '3-21G',
                    '6-31G'  : '6-31G',
                    '6-31G*' : '6-31G*'}
-    dft_d       = {None     : 'FALSE',
+    dft_d       = {'None'   : 'FALSE',
                    'd2'     : 'EMPIRICAL_GRIMME',
                    'd3'     : 'EMPIRICAL_GRIMME3'}
     #-----------------------------------------
 
     default_parameters = dict(
         xc='LDA',
-        disp=None,
+        disp='None',
         task='optimization',
         comment=None,
         tcs=None,
@@ -83,7 +86,7 @@ class QChem(FileIOCalculator):
 
         f.write("$rem\n")
         f.write("JOBTYPE          " + self.jobtype[p.task]   + "\n")
-        f.write("EXCHANGE         " + self.exchange[p.xc]    + "\n")
+        f.write("METHOD           " + self.method[p.xc]      + "\n")
         f.write("DFT_D            " + self.dft_d[p.disp]     + "\n")
         f.write("BASIS            " + self.basis[p.basis]    + "\n")
         f.write("SYMMETRY         " + str(p.symmetry)        + "\n")
@@ -116,6 +119,5 @@ class QChem(FileIOCalculator):
         if errorcode:
             raise RuntimeError('%s returned an error: %d' %
                                (self.name, errorcode))
-        mol, E = self.read_output()
-        return mol, E
 
+        return self.read_output()

@@ -89,12 +89,14 @@ jobname = str(sys.argv[1])
 rb1 = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])]     # dihedral idx
 rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]     # dihedral idx
 #------------------------------------------------
-MMFF    = "mmff94s"
-QMFUNC  = 'B3LYP'
-QMBASIS = 'STO-3G'
+MMFF       = "mmff94s"
+QMFUNC     = 'B3LYP'
+DISPERSION = 'd3'
+QMBASIS    = '6-31G*'
+TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
-QMtol = 4.5e-1
+QMtol = 4.5e-3
 ertol = 1.0e-10
 #------------------------------------------------
 nrot = int(sys.argv[10])             # number of angular discret
@@ -117,13 +119,15 @@ pybmol = pybel.readfile("pdb", jobname+".pdb").next()
 #  constrained optimization MM using openbabel  #
 #------------------------------------------------
 diangle = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
-nblock = int(math.ceil(float(nrot)/nproc) + ertol)
-diangle_loc = diangle[iproc*nblock:min((iproc+1)*nblock, nrot)]
+diangle_loc = diangle[iproc::nproc]
 #------------------------------------------------
-dir_name = "qchem_scan_"+jobname+"_"+QMBASIS
+dir_name = "qchem_scan_"+jobname+"_"+QMFUNC+"_"+DISPERSION+"_"+QMBASIS
 #------------------------------------------------
 if not os.path.isdir(dir_name):
-    os.makedirs(dir_name)
+    try:
+        os.makedirs(dir_name)
+    except Exception:
+        pass
 #------------------------------------------------
 
 #------------------------------------------------
@@ -131,50 +135,51 @@ if not os.path.isdir(dir_name):
 #------------------------------------------------
 energies_loc = []
 #------------------------------------------------
-for i in range(0, len(diangle_loc)):
-    #--------------------------------------------
-    angle1 = pybmol.OBMol.GetTorsion(rb1[0],rb1[1],rb1[2],rb1[3])/360*(2*math.pi) + diangle_loc[i]
-    angle2 = pybmol.OBMol.GetTorsion(rb2[0],rb2[1],rb2[2],rb2[3])/360*(2*math.pi)
-    #--------------------------------------------
-    molr = pybmol.clone
-    molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle1)
-    molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle2)
-    molr = geomOptMM(molr, [[rb1, angle1],[rb2, angle2]], MMFF, MMtol)
-    #--------------------------------------------
-    asemol = pyb2ase(molr, iproc)
-    #--------------------------------------------
-    calc = QChem(xc=QMFUNC, 
-                 disp='d3',
-                 basis=QMBASIS,
-                 task='optimization',
-                 symmetry=False,
-                 tcs=[[rb1, angle1],[rb2,angle2]],
-                 thresh=12,
-                 scf_convergence=8,
-                 maxfile=128,
-                 mem_static=400,
-                 mem_total=4000,
-                 label="tmp_qchem"+"{:04d}".format(iproc) + "/diangle_"+"{:5.3f}".format(diangle_loc[i]))
-    asemol, E = calc.run(asemol)
-    #----------------------------------------
-    if asemol is None:
-        print "Error:"+"diangle"+"{:5.3f}".format(diangle_loc[i])
-    #----------------------------------------
-    ase.io.write(dir_name+"/diangle_" + "{:5.3f}".format(diangle_loc[i]) + ".pdb", asemol)
-    #--------------------------------------------
-    energies_loc.append(("{:5.3f}".format(diangle_loc[i]), E))
-    #--------------------------------------------
+for rot_diangle1 in diangle_loc:
+    for rot_diangle2 in diangle:
+        #----------------------------------------
+        angle1 = pybmol.OBMol.GetTorsion(rb1[0],rb1[1],rb1[2],rb1[3])/360*(2*math.pi) + rot_diangle1
+        angle2 = pybmol.OBMol.GetTorsion(rb2[0],rb2[1],rb2[2],rb2[3])/360*(2*math.pi) + rot_diangle2
+        #----------------------------------------
+        molr = pybmol.clone
+        molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle1)
+        molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle2)
+        molr = geomOptMM(molr, [[rb1, angle1],[rb2, angle2]], MMFF, MMtol)
+        #----------------------------------------
+        asemol = pyb2ase(molr, iproc)
+        #----------------------------------------
+        calc = QChem(xc=QMFUNC, 
+                     disp=DISPERSION,
+                     basis=QMBASIS,
+                     task=TASK,
+                     symmetry=False,
+                     tcs=[[rb1, angle1],[rb2,angle2]],
+                     thresh=12,
+                     scf_convergence=8,
+                     maxfile=128,
+                     mem_static=400,
+                     mem_total=4000,
+                     label="tmp_qchem" + "/theta1_" + "{:5.3f}".format(rot_diangle1) + "_theta2_" + "{:5.3f}".format(rot_diangle2))
+        asemol, E = calc.run(asemol)
+        #----------------------------------------
+        if ((asemol is not None) and (E is not None)):
+            energies_loc.append((rot_diangle1, rot_diangle2, E))
+            ase.io.write(dir_name + "/theta1_" + "{:5.3f}".format(rot_diangle1) + "_theta2_" + "{:5.3f}".format(rot_diangle2) + ".pdb", asemol)
+            print "config %04d:    %15.7f\n" % (i, E)
+        else:
+            print "config %04d:    optimization failed\n" % (i)
+        #----------------------------------------
 
 #--------------------------------------------
 energies = MPI.COMM_WORLD.allgather(energies_loc)
 #--------------------------------------------
 if (iproc == 0):
 #------------------------------------------------
-    f = open(dir_name+"/diangle_energies", "w")
+    f = open(dir_name+"/energies", "w")
     #--------------------------------------------
     for i in range(0, len(energies)):
         for j in range(0, len(energies[i])):
-            f.write("diangle_%s:    %15.7f\n" % (energies[i][j][0], energies[i][j][1]))
+            f.write("%5.3f  %5.3f  %15.7f\n" % (energies[i][j][0], energies[i][j][1]), energies[i][j][2])
     #--------------------------------------------
     f.close()
     #--------------------------------------------

@@ -23,29 +23,41 @@ def pyb2ase(pybmol, pid):
     #--------------
     return asemol
 
+# #--------------------------------------------------
+# def geomOptMM(pybmol, tcs, MMFF, tol):
+#     #----------------------------------------
+#     constraints = openbabel.OBFFConstraints()
+#     #----------------------------------------
+#     if tcs is not None:
+#         for tc in tcs:
+#             constraints.AddTorsionConstraint(tc[0][0],tc[0][1],tc[0][2],tc[0][3], tc[1]*(360/(2*math.pi)))
+#     #----------------------------------------
+#     FF = pybel._forcefields[MMFF]
+#     FF.Setup(pybmol.OBMol, constraints)
+#     FF.SetConstraints(constraints)
+#     #----------------------------------------
+#     EE = FF.Energy()
+#     dE = EE
+#     #----------------------------------------
+#     while(abs(dE / EE) > tol):
+#         FF.ConjugateGradients(1000)
+#         dE = FF.Energy() - EE
+#         EE = FF.Energy()
+#     #--------------
+#     FF.GetCoordinates(pybmol.OBMol)
+#     #--------------
+#     return pybmol
+
 #--------------------------------------------------
-def geomOptMM(pybmol, tcs, MMFF, tol):
-    #----------------------------------------
-    constraints = openbabel.OBFFConstraints()
-    #----------------------------------------
-    if tcs is not None:
-        for tc in tcs:
-            constraints.AddTorsionConstraint(tc[0][0],tc[0][1],tc[0][2],tc[0][3], tc[1]*(360/(2*math.pi)))
-    #----------------------------------------
-    FF = pybel._forcefields[MMFF]
-    FF.Setup(pybmol.OBMol, constraints)
-    FF.SetConstraints(constraints)
-    #----------------------------------------
+def geomOptMM(pybmol, MMFF, tol):
+    FF=pybel._forcefields[MMFF]
+    FF.Setup(pybmol.OBMol)
     EE = FF.Energy()
     dE = EE
-    #----------------------------------------
     while(abs(dE / EE) > tol):
-        FF.ConjugateGradients(1000)
+        pybmol.localopt(forcefield=MMFF, steps=1000)
         dE = FF.Energy() - EE
         EE = FF.Energy()
-    #--------------
-    FF.GetCoordinates(pybmol.OBMol)
-    #--------------
     return pybmol
 
 #--------------------------------------------------
@@ -88,15 +100,16 @@ jobname = str(sys.argv[1])
 rb1 = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])]     # dihedral idx
 rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]     # dihedral idx
 #------------------------------------------------
-MMFF    = "mmff94s"
-QMFUNC  = 'B3LYP'
-QMBASIS = '6-31G*'
+MMFF       = "mmff94s"
+QMFUNC     = 'B3LYP'
+DISPERSION = 'd3'
+QMBASIS    = '6-31G*'
+TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
-QMtol = 4.5e-3
 ertol = 1.0e-10
 #------------------------------------------------
-nrot = 36             # number of angular discret
+nrot = int(sys.argv[10])             # number of angular discret
 #------------------------------------------------
 
 #------------------------------------------------
@@ -115,11 +128,7 @@ pybmol = pybel.readfile("pdb", jobname+".pdb").next()
 #------------------------------------------------
 #    geometry optimization MM using openbabel   #
 #------------------------------------------------
-pybmol = geomOptMM(pybmol, None, MMFF, MMtol)
-#------------------------------------------------
-
-#------------------------------------------------
-dir_name = "qchem_opt_"+jobname+"_"+QMBASIS
+pybmol = geomOptMM(pybmol, MMFF, MMtol)
 #------------------------------------------------
 
 #------------------------------------------------
@@ -127,8 +136,7 @@ mins_loc = []
 cors_loc = []
 #------------------------------------------------
 diangle = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
-nblock = int(math.ceil(float(nrot)/nproc) + ertol)
-diangle_loc = diangle[iproc*nblock:min((iproc+1)*nblock, nrot)]
+diangle_loc = diangle[iproc::nproc]
 #------------------------------------------------
 for angle_i in diangle_loc:
 #------------------------------------------------
@@ -137,12 +145,14 @@ for angle_i in diangle_loc:
         molr = pybmol.clone
         molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
         molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
-        molr = geomOptMM(molr, None, MMFF, MMtol)
+        molr = geomOptMM(molr, MMFF, MMtol)
+        #--------------------------------------------
+        print "MM finished: ", angle_i, angle_j
         #--------------------------------------------
         unique = True
         #--------------------------------------------
         for exmol in mins_loc:
-            if (getRMSD(exmol, molr) < 0.05):
+            if (getRMSD(exmol, molr) < 0.25):
                 unique = False
         if (unique == True):    
             mins_loc.append(molr)
@@ -163,7 +173,7 @@ for i in range(0, nproc):
         unique = True
         #----------------------------------------
         for exmol in mins:
-            if (getRMSD(exmol, molr) < 0.05):
+            if (getRMSD(exmol, molr) < 0.25):
                 unique = False
         if (unique == True):    
             mins.append(molr)
@@ -182,19 +192,32 @@ if (iproc == 0):
     f.close()
     #--------------------------------------------
 
+
+#------------------------------------------------
+dir_name = "qchem_opt_"+jobname+"_"+QMFUNC+"_"+DISPERSION+"_"+QMBASIS
+#------------------------------------------------
+if not os.path.isdir(dir_name):
+    try:
+        os.makedirs(dir_name)
+    except Exception:
+        pass
+#------------------------------------------------
+
+
+
 #-----------------------------------------
 # quantum qchem
 #-----------------------------------------
 configId = range(0, len(mins))
-nblock = int(math.ceil(float(len(mins))/nproc) + ertol)
-configId_loc = configId[iproc*nblock : min((iproc+1)*nblock, len(mins))]
+configId_loc = configId[iproc::nproc]
 energies_loc = []
 #-----------------------------------------
 for i in configId_loc:
     asemol = pyb2ase(mins[i], iproc)
     calc = QChem(xc=QMFUNC, 
+                 disp=DISPERSION,
                  basis=QMBASIS,
-                 task='optimization',
+                 task=TASK,
                  symmetry=False,
                  thresh=12,
                  scf_convergence=8,
@@ -203,9 +226,12 @@ for i in configId_loc:
                  mem_total=4000,
                  label="tmp_qchem"+"{:04d}".format(iproc)+"/qchem"+"{:04d}".format(i))
     asemol, E = calc.run(asemol)
-    energies_loc.append(E)
-    ase.io.write(dir_name+"/config_" + "{:04d}".format(i) + ".pdb", asemol)
-    print i
+    if ((asemol is not None) and (E is not None)):
+        energies_loc.append((i,E))
+        ase.io.write(dir_name+"/config_" + "{:04d}".format(i) + ".pdb", asemol)
+        print "config %04d:    %15.7f\n" % (i, E)
+    else:
+        print "config %04d:    optimization failed\n" % (i)
 #-----------------------------------------
 
 #------------------------------------------------
@@ -215,12 +241,9 @@ if (iproc == 0):
 #------------------------------------------------
     f = open(dir_name+"/energies", "w")
     #--------------------------------------------
-    configId = 0
-    #--------------------------------------------
     for i in range(0, len(energies)):
         for j in range(0, len(energies[i])):
-            f.write("config %04d:    %15.7f\n" % (configId, energies[i][j]))
-            configId = configId + 1
+            f.write("config %04d:    %15.7f\n" % (energies[i][j][0], energies[i][j][1]))
     #--------------------------------------------
     f.close()
     #--------------------------------------------
