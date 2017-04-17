@@ -41,7 +41,7 @@ def geomOptMM(pybmol, tcs, MMFF, tol):
     #----------------------------------------
     while(abs(dE / EE) > tol):
         #------------------------------------
-        FF.ConjugateGradient(1000)
+        FF.ConjugateGradients(1000)
         dE = FF.Energy() - EE
         EE = FF.Energy()
     #--------------
@@ -92,7 +92,8 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3'
-QMBASIS    = '6-31G*'
+# QMBASIS    = '6-31G*'
+QMBASIS    = 'STO-3G'
 TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
@@ -165,9 +166,9 @@ for rot_diangle1 in diangle_loc:
         if ((asemol is not None) and (E is not None)):
             energies_loc.append((rot_diangle1, rot_diangle2, E))
             ase.io.write(dir_name + "/theta1_" + "{:5.3f}".format(rot_diangle1) + "_theta2_" + "{:5.3f}".format(rot_diangle2) + ".pdb", asemol)
-            print "config %04d:    %15.7f\n" % (i, E)
+            print "theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f\n" % (rot_diangle1, rot_diangle2, E)
         else:
-            print "config %04d:    optimization failed\n" % (i)
+            print "theta1: %5.3f,  theta2: %5.3f,  optimization failed\n" % (rot_diangle1, rot_diangle2)
         #----------------------------------------
 
 #--------------------------------------------
