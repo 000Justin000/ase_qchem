@@ -92,8 +92,7 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3'
-# QMBASIS    = '6-31G*'
-QMBASIS    = 'STO-3G'
+QMBASIS    = '6-31G*'
 TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
@@ -160,12 +159,12 @@ for rot_diangle1 in diangle_loc:
                      maxfile=128,
                      mem_static=400,
                      mem_total=4000,
-                     label="tmp_qchem" + "/theta1_" + "{:5.3f}".format(rot_diangle1) + "_theta2_" + "{:5.3f}".format(rot_diangle2))
+                     label="tmp_qchem"+"{:04d}".format(iproc)+"/theta1_"+"{:5.3f}".format(rot_diangle1)+"_theta2_"+"{:5.3f}".format(rot_diangle2))
         asemol, E = calc.run(asemol)
         #----------------------------------------
         if ((asemol is not None) and (E is not None)):
             energies_loc.append((rot_diangle1, rot_diangle2, E))
-            ase.io.write(dir_name + "/theta1_" + "{:5.3f}".format(rot_diangle1) + "_theta2_" + "{:5.3f}".format(rot_diangle2) + ".pdb", asemol)
+            ase.io.write(dir_name+"/theta1_"+"{:5.3f}".format(rot_diangle1)+"_theta2_"+"{:5.3f}".format(rot_diangle2)+".pdb", asemol)
             print "theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f\n" % (rot_diangle1, rot_diangle2, E)
         else:
             print "theta1: %5.3f,  theta2: %5.3f,  optimization failed\n" % (rot_diangle1, rot_diangle2)
@@ -180,7 +179,7 @@ if (iproc == 0):
     #--------------------------------------------
     for i in range(0, len(energies)):
         for j in range(0, len(energies[i])):
-            f.write("%5.3f  %5.3f  %15.7f\n" % (energies[i][j][0], energies[i][j][1]), energies[i][j][2])
+            f.write("%5.3f  %5.3f  %15.7f\n" % (energies[i][j][0], energies[i][j][1], energies[i][j][2]))
     #--------------------------------------------
     f.close()
     #--------------------------------------------

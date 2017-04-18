@@ -79,7 +79,7 @@ class QChem(FileIOCalculator):
             f.write("CONSTRAINT\n")
             for tc in p.tcs:
                 di_angle = tc[1]*360/(2*math.pi)
-                di_angle = di_angle - int(di_angle/180.0) * 360.0
+                di_angle = np.mod(di_angle+180.0, 360.0)-180.0
                 f.write("tors    " + str(tc[0][0]) + "    " + str(tc[0][1]) + "    " + str(tc[0][2]) + "    " + str(tc[0][3]) + "    " + str(di_angle) + "\n")
             f.write("ENDCONSTRAINT\n")
             f.write("$end\n\n")
