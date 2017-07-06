@@ -135,8 +135,9 @@ pybmol = geomOptMM(pybmol, MMFF, MMtol)
 mins_loc = []
 cors_loc = []
 #------------------------------------------------
-diangle = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
-diangle_loc = diangle[iproc::nproc]
+diangle_1 = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
+diangle_2 = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
+dg1, dg2  = numpy.meshgrid(diangle_1, diangle_2)
 #------------------------------------------------
 for angle_i in diangle_loc:
 #------------------------------------------------

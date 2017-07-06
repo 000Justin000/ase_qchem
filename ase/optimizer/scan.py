@@ -116,8 +116,6 @@ pybmol = pybel.readfile("pdb", jobname+".pdb").next()
 #------------------------------------------------
 
 #------------------------------------------------
-#  constrained optimization MM using openbabel  #
-#------------------------------------------------
 diangle = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
 diangle_loc = diangle[iproc::nproc]
 #------------------------------------------------
@@ -148,6 +146,8 @@ for rot_diangle1 in diangle_loc:
         #----------------------------------------
         asemol = pyb2ase(molr, iproc)
         #----------------------------------------
+        prefix = "theta1_"+"{:5.3f}".format(rot_diangle1)+"_theta2_"+"{:5.3f}".format(rot_diangle2)
+        #----------------------------------------
         calc = QChem(xc=QMFUNC, 
                      disp=DISPERSION,
                      basis=QMBASIS,
@@ -159,12 +159,12 @@ for rot_diangle1 in diangle_loc:
                      maxfile=128,
                      mem_static=400,
                      mem_total=4000,
-                     label="tmp_qchem"+"{:04d}".format(iproc)+"/theta1_"+"{:5.3f}".format(rot_diangle1)+"_theta2_"+"{:5.3f}".format(rot_diangle2))
+                     label="tmp_qchem"+"{:04d}".format(iproc)+"/" + prefix)
         asemol, E = calc.run(asemol)
         #----------------------------------------
         if ((asemol is not None) and (E is not None)):
             energies_loc.append((rot_diangle1, rot_diangle2, E))
-            ase.io.write(dir_name+"/theta1_"+"{:5.3f}".format(rot_diangle1)+"_theta2_"+"{:5.3f}".format(rot_diangle2)+".pdb", asemol)
+            ase.io.write(dir_name+"/" + prefix +".pdb", asemol)
             print "theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f\n" % (rot_diangle1, rot_diangle2, E)
         else:
             print "theta1: %5.3f,  theta2: %5.3f,  optimization failed\n" % (rot_diangle1, rot_diangle2)
