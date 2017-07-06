@@ -135,30 +135,34 @@ pybmol = geomOptMM(pybmol, MMFF, MMtol)
 mins_loc = []
 cors_loc = []
 #------------------------------------------------
-diangle_1 = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
-diangle_2 = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
-dg1, dg2  = numpy.meshgrid(diangle_1, diangle_2)
+angle_1 = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
+angle_2 = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
+diangles  = []
 #------------------------------------------------
-for angle_i in diangle_loc:
+for angle_i in angle_1:
 #------------------------------------------------
-    for angle_j in diangle:
+    for angle_j in angle_2:
     #--------------------------------------------
-        molr = pybmol.clone
-        molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
-        molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
-        molr = geomOptMM(molr, MMFF, MMtol)
-        #--------------------------------------------
-        print "MM finished: ", angle_i, angle_j
-        #--------------------------------------------
-        unique = True
-        #--------------------------------------------
-        for exmol in mins_loc:
-            if (getRMSD(exmol, molr) < 0.25):
-                unique = False
-        if (unique == True):    
-            mins_loc.append(molr)
-            cors_loc.append(getCoords(molr))
-        #--------------------------------------------
+        diangles.append([angle_i, angle_j])
+#------------------------------------------------
+diangles_loc = diangles[iproc::nproc]
+#------------------------------------------------
+
+#------------------------------------------------
+for diangle in diangles_loc:
+#------------------------------------------------
+    molr = pybmol.clone
+    molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], diangles[0])
+    molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], diangles[1])
+    molr = geomOptMM(molr, MMFF, MMtol)
+    #--------------------------------------------
+    print "MM finished: theta1_" + "{:5.3f}".format(diangle[0]) + "_theta2_" + "{:5.3f}".format(diangle[1])
+    #--------------------------------------------
+    mins_loc.append(molr)
+    cors_loc.append(getCoords(molr))
+    #--------------------------------------------
+
+# continue
 
 #------------------------------------------------
 cors = MPI.COMM_WORLD.allgather(cors_loc)
