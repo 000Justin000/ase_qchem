@@ -1,0 +1,2 @@
+xyz file is the input for optimization job
+pdb file is the output (global minimal) of the optimization job, also the input for the scan job
