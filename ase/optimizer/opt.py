@@ -162,8 +162,6 @@ for diangle in diangles_loc:
     cors_loc.append(getCoords(molr))
     #--------------------------------------------
 
-# continue
-
 #------------------------------------------------
 cors = MPI.COMM_WORLD.allgather(cors_loc)
 #------------------------------------------------
@@ -178,7 +176,7 @@ for i in range(0, nproc):
         unique = True
         #----------------------------------------
         for exmol in mins:
-            if (getRMSD(exmol, molr) < 0.25):
+            if (getRMSD(exmol, molr) < 0.10):
                 unique = False
         if (unique == True):    
             mins.append(molr)
@@ -199,7 +197,7 @@ if (iproc == 0):
 
 
 #------------------------------------------------
-dir_name = "qchem_opt_"+jobname+"_"+QMFUNC+"_"+DISPERSION+"_"+QMBASIS
+dir_name = "qchem_"+jobname+"_"+QMFUNC+"_"+DISPERSION+"_"+QMBASIS
 #------------------------------------------------
 if not os.path.isdir(dir_name):
     try:
