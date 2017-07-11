@@ -17,7 +17,13 @@ from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 
 class QChem(FileIOCalculator):
     implemented_properties = ['optimization']
+    #-----------------------------------------
     command = 'qchem PREFIX.in > PREFIX.out'
+    #-----------------------------------------
+    try:
+        command = os.environ["ACE_QCHEM_COMMAND"]
+    except:
+        pass
     #-----------------------------------------
     jobtype     = {'optimization' : 'OPT',
                    'frequency'    : 'FREQ',

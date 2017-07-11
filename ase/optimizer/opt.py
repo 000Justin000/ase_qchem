@@ -24,6 +24,8 @@ from utils import *
 #################################################
 
 
+print "----------------mmmmmmmmm----------------"
+
 #------------------------------------------------
 #                 customize area                #
 #------------------------------------------------
@@ -35,7 +37,7 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3'
-QMBASIS    = '6-31G*'
+QMBASIS    = 'STO-3G'
 TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
