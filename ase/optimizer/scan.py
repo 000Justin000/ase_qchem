@@ -35,7 +35,7 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3'
-QMBASIS    = 'STO-3G'
+QMBASIS    = '6-31G*'
 TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
@@ -95,7 +95,7 @@ for diangle in diangles_loc:
     molr = pybmol.clone
     molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
     molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
-    molr = geomOptMM(molr, [[rb1, angle1],[rb2, angle2]], MMFF, MMtol)
+    molr = geomOptMM(molr, [[rb1, angle_i],[rb2, angle_j]], MMFF, MMtol)
     #----------------------------------------
     asemol = pyb2ase(molr, iproc)
     #----------------------------------------

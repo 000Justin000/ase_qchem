@@ -41,7 +41,7 @@ def geomOptMM(pybmol, tcs, MMFF, tol):
     #----------------------------------------
     while(abs(dE / EE) > tol):
         #------------------------------------
-        FF.ConjugateGradients(1000)
+        FF.SteepestDescent(1000)
         dE = FF.Energy() - EE
         EE = FF.Energy()
     #--------------

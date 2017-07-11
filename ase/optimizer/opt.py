@@ -35,7 +35,7 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3'
-QMBASIS    = 'STO-3G'
+QMBASIS    = '6-31G*'
 TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
@@ -164,9 +164,9 @@ for i in configId_loc:
     if ((asemol is not None) and (E is not None)):
         energies_loc.append((i,E))
         ase.io.write(dir_name+"/config_" + "{:04d}".format(i) + ".pdb", asemol)
-        print "config %04d:    %15.7f\n" % (i, E)
+        print "config %04d:    %15.7f" % (i, E)
     else:
-        print "config %04d:    optimization failed\n" % (i)
+        print "config %04d:    optimization failed" % (i)
 #-----------------------------------------
 
 #------------------------------------------------
