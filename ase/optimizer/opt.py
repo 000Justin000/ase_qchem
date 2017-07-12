@@ -24,7 +24,8 @@ from utils import *
 #################################################
 
 
-print "----------------mmmmmmmmm----------------"
+print "--------------"
+sys.stdout.flush()
 
 #------------------------------------------------
 #                 customize area                #
@@ -91,6 +92,7 @@ for diangle in diangles_loc:
     molr = geomOptMM(molr, [], MMFF, MMtol)
     #--------------------------------------------
     print "MM finished: theta1_" + "{:5.3f}".format(diangle[0]) + "_theta2_" + "{:5.3f}".format(diangle[1])
+    sys.stdout.flush()
     #--------------------------------------------
     mins_loc.append(molr)
     cors_loc.append(getCoords(molr))
@@ -167,8 +169,10 @@ for i in configId_loc:
         energies_loc.append((i,E))
         ase.io.write(dir_name+"/config_" + "{:04d}".format(i) + ".pdb", asemol)
         print "config %04d:    %15.7f" % (i, E)
+        sys.stdout.flush()
     else:
         print "config %04d:    optimization failed" % (i)
+        sys.stdout.flush()
 #-----------------------------------------
 
 #------------------------------------------------

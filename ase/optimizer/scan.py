@@ -35,7 +35,7 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3'
-QMBASIS    = '6-31G*'
+QMBASIS    = 'STO-3G'
 TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
@@ -118,9 +118,11 @@ for diangle in diangles_loc:
     if ((asemol is not None) and (E is not None)):
         energies_loc.append((diangle[0], diangle[1], E))
         ase.io.write(dir_name+"/" + prefix +".pdb", asemol)
-        print "theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f\n" % (diangle[0], diangle[1], E)
+        print "theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f" % (diangle[0], diangle[1], E)
+        sys.stdout.flush()
     else:
-        print "theta1: %5.3f,  theta2: %5.3f,  optimization failed\n" % (diangle[0], diangle[1])
+        print "theta1: %5.3f,  theta2: %5.3f,  optimization failed" % (diangle[0], diangle[1])
+        sys.stdout.flush()
     #----------------------------------------
 
 #------------------------------------------------
