@@ -35,7 +35,7 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3'
-QMBASIS    = 'STO-3G'
+QMBASIS    = '6-31G*'
 TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
@@ -109,7 +109,7 @@ for i in range(0, nproc):
         unique = True
         #----------------------------------------
         for exmol in mins:
-            if (getRMSD(exmol, molr) < 0.10):
+            if (getRMSD(exmol, molr) < 0.05):
                 unique = False
         if (unique == True):    
             mins.append(molr)
