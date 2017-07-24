@@ -94,13 +94,13 @@ opt_dir_name = "qchem_opt_"+jobname+"_"+QMFUNC+"_"+DISPERSION+"_"+QMBASIS
 #-----------------------------------------
 # frequency analysis with qchem
 #-----------------------------------------
-configId = range(0, 100)
+configId = list(range(0, 100))
 configId_loc = configId[iproc::nproc]
 #-----------------------------------------
 for i in configId_loc:
     molfile = opt_dir_name+"/config_"+"{:04d}".format(i)+".pdb"
     if (os.path.exists(molfile)):
-        pybmol = pybel.readfile("pdb", molfile).next()
+        pybmol = next(pybel.readfile("pdb", molfile))
         asemol = pyb2ase(pybmol, iproc)
         calc = QChem(xc=QMFUNC, 
                      disp=DISPERSION,

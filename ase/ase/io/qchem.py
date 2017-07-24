@@ -1,12 +1,12 @@
 from ase.utils import StringIO
 from ase.io import read
-from ase.utils import basestring
+from ase.utils import str
 
 def read_qchem_opt_output(filename):
     """Method to read geometry and final energy from a qchem optimization output."""
 
     f = filename
-    if isinstance(filename, basestring):
+    if isinstance(filename, str):
         f = open(filename)
 
     lines = f.readlines()
@@ -42,7 +42,7 @@ def read_qchem_opt_output(filename):
         else:
             i += 1
 
-    if isinstance(filename, basestring):
+    if isinstance(filename, str):
         f.close()
 
     return atoms, Efinal
@@ -54,7 +54,7 @@ def read_qchem_opt_output(filename):
 def read_qchem(filename):
     """Method to read geometry from an qchem input file."""
     f = filename
-    if isinstance(filename, basestring):
+    if isinstance(filename, str):
         f = open(filename)
     lines = f.readlines()
 
@@ -86,7 +86,7 @@ def read_qchem(filename):
 def write_qchem(filename, atoms, comment=None):
     """Method to write nwchem coord file."""
 
-    if isinstance(filename, basestring):
+    if isinstance(filename, str):
         f = open(filename, 'w')
     else:  # Assume it's a 'file-like object'
         f = filename
