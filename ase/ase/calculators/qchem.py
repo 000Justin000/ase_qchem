@@ -18,7 +18,7 @@ from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 class QChem(FileIOCalculator):
     implemented_properties = ['optimization']
     #-----------------------------------------
-    command = 'qchem PREFIX.in > PREFIX.out'
+    command = 'qchem PREFIX.in PREFIX.out PREFIX.save > PREFIX.print'
     #-----------------------------------------
     try:
         command = os.environ["ACE_QCHEM_COMMAND"]
