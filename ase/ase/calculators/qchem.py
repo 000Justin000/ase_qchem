@@ -18,7 +18,7 @@ from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 class QChem(FileIOCalculator):
     implemented_properties = ['optimization']
     #-----------------------------------------
-    command = 'qchem PREFIX.in > PREFIX.out'
+    command = 'qchem PREFIX.in PREFIX.out PREFIX.save > PREFIX.print'
     #-----------------------------------------
     try:
         command = os.environ["ACE_QCHEM_COMMAND"]
@@ -119,6 +119,7 @@ class QChem(FileIOCalculator):
         try:
             os.chdir(self.directory)
             errorcode = subprocess.call(command, shell=True)
+            subprocess.call("rm -rf $QCSCRATCH/" + self.prefix + ".save", shell=True)
         finally:
             os.chdir(olddir)
 
