@@ -119,6 +119,7 @@ class QChem(FileIOCalculator):
         try:
             os.chdir(self.directory)
             errorcode = subprocess.call(command, shell=True)
+            subprocess.call("rm -rf $QCSCRATCH/" + self.prefix + ".save", shell=True)
         finally:
             os.chdir(olddir)
 
