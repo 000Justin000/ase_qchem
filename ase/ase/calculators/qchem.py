@@ -45,6 +45,7 @@ class QChem(FileIOCalculator):
         task='optimization',
         comment=None,
         tcs=None,
+        opt_maxcycle=50,
         symmetry=False,
         basis='STO-3G',
         thresh=12,
@@ -91,16 +92,18 @@ class QChem(FileIOCalculator):
             f.write("$end\n\n")
 
         f.write("$rem\n")
-        f.write("JOBTYPE          " + self.jobtype[p.task]   + "\n")
-        f.write("METHOD           " + self.method[p.xc]      + "\n")
-        f.write("DFT_D            " + self.dft_d[p.disp]     + "\n")
-        f.write("BASIS            " + self.basis[p.basis]    + "\n")
-        f.write("SYMMETRY         " + str(p.symmetry)        + "\n")
-        f.write("THRESH           " + str(p.thresh)          + "\n")
-        f.write("SCF_CONVERGENCE  " + str(p.scf_convergence) + "\n")
-        f.write("MAX_SUB_FILE_NUM " + str(p.maxfile)         + "\n")
-        f.write("MEM_STATIC       " + str(p.mem_static)      + "\n")
-        f.write("MEM_TOTAL        " + str(p.mem_total)       + "\n")
+        f.write("JOBTYPE             " + self.jobtype[p.task]    + "\n")
+        f.write("METHOD              " + self.method[p.xc]       + "\n")
+        f.write("DFT_D               " + self.dft_d[p.disp]      + "\n")
+        f.write("BASIS               " + self.basis[p.basis]     + "\n")
+        if (p.task == "optimization"):
+            f.write("GEOM_OPT_MAX_CYCLES " + str(p.opt_maxcycle) + "\n")
+        f.write("SYMMETRY            " + str(p.symmetry)         + "\n")
+        f.write("THRESH              " + str(p.thresh)           + "\n")
+        f.write("SCF_CONVERGENCE     " + str(p.scf_convergence)  + "\n")
+        f.write("MAX_SUB_FILE_NUM    " + str(p.maxfile)          + "\n")
+        f.write("MEM_STATIC          " + str(p.mem_static)       + "\n")
+        f.write("MEM_TOTAL           " + str(p.mem_total)        + "\n")
         f.write("$end\n")
 
     def read_output(self):

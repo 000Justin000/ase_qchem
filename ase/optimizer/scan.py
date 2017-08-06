@@ -107,6 +107,7 @@ for diangle in diangles_loc:
                  task=TASK,
                  symmetry=False,
                  tcs=[[rb1, angle_i],[rb2,angle_j]],
+                 opt_maxcycle=200,
                  thresh=12,
                  scf_convergence=8,
                  maxfile=128,
