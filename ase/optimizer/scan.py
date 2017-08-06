@@ -55,7 +55,7 @@ iproc = MPI.COMM_WORLD.Get_rank()
 #------------------------------------------------
 #         read the molecule with pybel          #
 #------------------------------------------------
-pybmol = pybel.readfile("pdb", jobname+".pdb").next()
+pybmol = next(pybel.readfile("pdb", jobname+".pdb"))
 #------------------------------------------------
 
 #------------------------------------------------
@@ -118,10 +118,10 @@ for diangle in diangles_loc:
     if ((asemol is not None) and (E is not None)):
         energies_loc.append((diangle[0], diangle[1], E))
         ase.io.write(dir_name+"/" + prefix +".pdb", asemol)
-        print "theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f" % (diangle[0], diangle[1], E)
+        print("theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f" % (diangle[0], diangle[1], E))
         sys.stdout.flush()
     else:
-        print "theta1: %5.3f,  theta2: %5.3f,  optimization failed" % (diangle[0], diangle[1])
+        print("theta1: %5.3f,  theta2: %5.3f,  optimization failed" % (diangle[0], diangle[1]))
         sys.stdout.flush()
     #----------------------------------------
 

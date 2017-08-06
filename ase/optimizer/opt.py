@@ -54,7 +54,7 @@ iproc = MPI.COMM_WORLD.Get_rank()
 #------------------------------------------------
 #         read the molecule with pybel          #
 #------------------------------------------------
-pybmol = pybel.readfile("pdb", jobname+".pdb").next()
+pybmol = next(pybel.readfile("pdb", jobname+".pdb"))
 #------------------------------------------------
 
 #------------------------------------------------
@@ -88,7 +88,7 @@ for diangle in diangles_loc:
     molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], diangle[1])
     molr = geomOptMM(molr, [], MMFF, MMtol)
     #--------------------------------------------
-    print "MM finished: theta1_" + "{:5.3f}".format(diangle[0]) + "_theta2_" + "{:5.3f}".format(diangle[1])
+    print(("MM finished: theta1_" + "{:5.3f}".format(diangle[0]) + "_theta2_" + "{:5.3f}".format(diangle[1])))
     sys.stdout.flush()
     #--------------------------------------------
     mins_loc.append(molr)
@@ -144,7 +144,7 @@ if not os.path.isdir(dir_name):
 #-----------------------------------------
 # quantum qchem
 #-----------------------------------------
-configId = range(0, len(mins))
+configId = list(range(0, len(mins)))
 configId_loc = configId[iproc::nproc]
 energies_loc = []
 #-----------------------------------------
@@ -165,10 +165,10 @@ for i in configId_loc:
     if ((asemol is not None) and (E is not None)):
         energies_loc.append((i,E))
         ase.io.write(dir_name+"/config_" + "{:04d}".format(i) + ".pdb", asemol)
-        print "config %04d:    %15.7f" % (i, E)
+        print(("config %04d:    %15.7f" % (i, E)))
         sys.stdout.flush()
     else:
-        print "config %04d:    optimization failed" % (i)
+        print(("config %04d:    optimization failed" % (i)))
         sys.stdout.flush()
 #-----------------------------------------
 
