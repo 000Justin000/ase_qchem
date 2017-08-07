@@ -72,7 +72,7 @@ def read_qchem_opt_output(filename):
         else:
             i += 1
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()
 
     return atoms, Efinal
