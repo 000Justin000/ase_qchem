@@ -1,12 +1,42 @@
 from ase.utils import StringIO
 from ase.io import read
-from ase.utils import str
+from ase.utils import basestring
+
+def read_qchem_sp_output(filename):
+    """Method to read final energy from a qchem single point energy output."""
+
+    f = filename
+    if isinstance(filename, basestring):
+        f = open(filename)
+
+    lines = f.readlines()
+
+    Efinal = None
+
+    i = 0
+    #----------------------------------------------------
+    while i < len(lines):
+        #------------------------------------------------
+        if lines[i].find("total energy =") >= 0:
+            Efinal = float(lines[i].split()[4])
+        #------------------------------------------------
+        i += 1
+        #------------------------------------------------
+
+    if isinstance(filename, basestring):
+        f.close()
+
+    return Efinal
+
+
+
+
 
 def read_qchem_opt_output(filename):
     """Method to read geometry and final energy from a qchem optimization output."""
 
     f = filename
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
 
     lines = f.readlines()
@@ -42,7 +72,7 @@ def read_qchem_opt_output(filename):
         else:
             i += 1
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()
 
     return atoms, Efinal
@@ -54,7 +84,7 @@ def read_qchem_opt_output(filename):
 def read_qchem(filename):
     """Method to read geometry from an qchem input file."""
     f = filename
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     lines = f.readlines()
 
@@ -86,7 +116,7 @@ def read_qchem(filename):
 def write_qchem(filename, atoms, comment=None):
     """Method to write nwchem coord file."""
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename, 'w')
     else:  # Assume it's a 'file-like object'
         f = filename
