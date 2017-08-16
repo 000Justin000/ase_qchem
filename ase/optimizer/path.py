@@ -67,23 +67,42 @@ elif (jobname == "path_1101"):
                                 "LM",      "TS",      "LM",      "TS",      "LM",      "TS",      "TS"])
 elif (jobname == "path_1111"):
     rotlist = numpy.array([[  0,360], [ 62,325], [ 85,255], [130,200], [185,195], [230,160], [257, 92], [298, 40]])
+    cfglist = numpy.array([     "LM",      "TS",      "LM",      "TS",      "LM",      "TS",      "LM",      "TS"])
 elif (jobname == "path_10n01"):
     rotlist = numpy.array([[  0,360], [ 44,302], [ 90,245], [150,198], [176,180], [198,153], [248, 87], [302, 43]])
+    cfglist = numpy.array([     "LM",      "TS",      "LM",      "TS",      "LM",      "TS",      "LM",      "TS"])
 elif (jobname == "path_11n01"):
     rotlist = numpy.array([[  0,360], [108,253], [230,130], [293, 72], [  0,190], [118, 72], [212,335], [288,255]])
+    cfglist = numpy.array([     "LM",      "TS",      "LM",      "TS",      "LM",      "TS",      "LM",      "TS"])
 elif (jobname == "path_11n11"):
     rotlist = numpy.array([[  0,360], [ 40,313], [ 75,268], [133,226], [187,185], [223,136], [265, 77], [310, 46]])
+    cfglist = numpy.array([     "LM",      "TS",      "LM",      "TS",      "LM",      "TS",      "LM",      "TS"])
 #------------------------------------------------
 rotlist = rotlist / 360.0 * (2*math.pi)
+#------------------------------------------------
+TSgrid = numpy.linspace(-4,4,5) / 360.0 * (2*math.pi)
 #------------------------------------------------
 diangles = []
 constrns = []
 #------------------------------------------------
 for i in range(0, len(rotlist)):
 #------------------------------------------------
-    diangles.append([rotlist[i,0], rotlist[i,1]])
+    if (cfglist[i] == "LM"):
+        diangles.append([rotlist[i,0], rotlist[i,1]])
+        constrns.append(False)
+    elif (cfglist[i] == "TS"):
+        for x in TSgrid:
+            for y in TSgrid:
+                angle1 = (rotlist[i,0]+x) - numpy.floor((rotlist[i,0]+x)/(2*math.pi))*(2*math.pi)
+                angle2 = (rotlist[i,1]+y) - numpy.floor((rotlist[i,1]+y)/(2*math.pi))*(2*math.pi)
+                diangles.append([angle1, angle2])
+                constrns.append(True)
+#------------------------------------------------
+                
 #------------------------------------------------
 diangles_loc = diangles[iproc::nproc]
+#------------------------------------------------
+constrns_loc = constrns[iproc::nproc]
 #------------------------------------------------
 
 #------------------------------------------------
@@ -101,7 +120,7 @@ if not os.path.isdir(dir_name):
 #------------------------------------------------
 energies_loc = []
 #------------------------------------------------
-for diangle in diangles_loc:
+for diangle, constrn in zip(diangles_loc, constrns_loc):
     #----------------------------------------
     angle_i = pybmol.OBMol.GetTorsion(rb1[0],rb1[1],rb1[2],rb1[3])/360*(2*math.pi) + diangle[0]
     angle_j = pybmol.OBMol.GetTorsion(rb2[0],rb2[1],rb2[2],rb2[3])/360*(2*math.pi) + diangle[1]
@@ -115,12 +134,17 @@ for diangle in diangles_loc:
     #----------------------------------------
     prefix = "theta1_"+"{:5.3f}".format(diangle[0])+"_theta2_"+"{:5.3f}".format(diangle[1])
     #----------------------------------------
+    if (constrn == True):
+        constraints = [[rb1, angle_i],[rb2,angle_j]]
+    elif (constrn == False):
+        constraints = None
+    #----------------------------------------
     calc = QChem(xc=QMFUNC, 
                  disp=DISPERSION,
                  basis=QMBASIS,
                  task=TASK,
                  symmetry=False,
-                 tcs=[[rb1, angle_i],[rb2,angle_j]],
+                 tcs=constraints,
                  opt_maxcycle=200,
                  thresh=12,
                  scf_convergence=8,
@@ -131,9 +155,12 @@ for diangle in diangles_loc:
     asemol, E = calc.run(asemol)
     #----------------------------------------
     if ((asemol is not None) and (E is not None)):
-        energies_loc.append((diangle[0], diangle[1], E))
+        molr = ase2pyb(asemol, iproc)
+        angle1 = compareTorsion(molr, pybmol, rb1)
+        angle2 = compareTorsion(molr, pybmol, rb2)
+        energies_loc.append((diangle[0], diangle[1], angle1, angle2, E))
         ase.io.write(dir_name+"/" + prefix +".pdb", asemol)
-        print("theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f" % (diangle[0], diangle[1], E))
+        print("theta1: %5.3f,  theta2: %5.3f,  angle1: %5.3f, angle2: %5.3f, energy: %15.7f" % (diangle[0], diangle[1], angle1, angle2, E))
         sys.stdout.flush()
     else:
         print("theta1: %5.3f,  theta2: %5.3f,  optimization failed" % (diangle[0], diangle[1]))
@@ -143,14 +170,14 @@ for diangle in diangles_loc:
 #------------------------------------------------
 energies = MPI.COMM_WORLD.allgather(energies_loc)
 energies = sum(energies, []) # flatten 2d array to 1d
-energies.sort()
+# energies.sort()
 #------------------------------------------------
 if (iproc == 0):
 #------------------------------------------------
     f = open(dir_name+"/energies", "w")
     #--------------------------------------------
     for i in range(0, len(energies)):
-        f.write("%5.3f  %5.3f  %15.7f\n" % (energies[i][0], energies[i][1], energies[i][2]))
+        f.write("%5.3f  %5.3f  %5.3f  %5.3f  %15.7f\n" % (energies[i][0], energies[i][1], energies[i][2], energies[i][3], energies[i][4]))
     #--------------------------------------------
     f.close()
     #--------------------------------------------
