@@ -86,7 +86,7 @@ for diangle in diangles_loc:
     molr = pybmol.clone
     molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], diangle[0])
     molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], diangle[1])
-    molr = geomOptMM(molr, [], MMFF, MMtol)
+    molr = geomOptMM(molr, [[rb1,diangle[0]], [rb2,diangle[1]]], MMFF, MMtol)
     #--------------------------------------------
     print(("MM finished: theta1_" + "{:5.3f}".format(diangle[0]) + "_theta2_" + "{:5.3f}".format(diangle[1])))
     sys.stdout.flush()
