@@ -18,7 +18,7 @@ from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 class QChem(FileIOCalculator):
     implemented_properties = ['optimization, single_point']
     #-----------------------------------------
-    command = 'qchem PREFIX.in PREFIX.out PREFIX.save > PREFIX.print'
+    command = 'qchem -nt $OMP_NUM_THREADS PREFIX.in PREFIX.out PREFIX.save > PREFIX.print'
     #-----------------------------------------
     try:
         command = os.environ["ACE_QCHEM_COMMAND"]

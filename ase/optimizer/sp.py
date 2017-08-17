@@ -33,7 +33,7 @@ rb1 = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])]  
 rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]     # dihedral idx
 QMFUNC     = 'RIMP2'
 DISPERSION = 'None'
-QMBASIS    = 'aug-cc-pVTZ'
+QMBASIS    = 'aug-cc-pVDZ'
 TASK       = 'single_point'
 #------------------------------------------------
 QMtol = 4.5e-3

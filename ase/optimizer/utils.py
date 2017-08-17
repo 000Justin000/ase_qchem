@@ -24,6 +24,14 @@ def pyb2ase(pybmol, pid):
     return asemol
 
 #--------------------------------------------------
+def ase2pyb(asemol, pid):
+    ase.io.write("tmp"+"{:04d}".format(pid)+".pdb", asemol)
+    pybmol = next(pybel.readfile("pdb", "tmp"+"{:04d}".format(pid)+".pdb"))
+    os.remove("tmp"+"{:04d}".format(pid)+".pdb")
+    #--------------
+    return pybmol
+
+#--------------------------------------------------
 def geomOptMM(pybmol, tcs, MMFF, tol):
     #----------------------------------------
     constraints = openbabel.OBFFConstraints()
@@ -87,16 +95,15 @@ def getPybmol(pybmol, coords):
         atom.OBAtom.SetVector(coord[0], coord[1], coord[2])
     return molr
 
-#--------------------------------------------------
-def compareTorsion(pybmol1, pybmol2, rb1, rb2):
-    angle1 = pybmol1.OBMol.GetTorsion(rb1[0],rb1[1],rb1[2],rb1[3])/360*(2*math.pi)
-    angle2 = pybmol2.OBMol.GetTorsion(rb2[0],rb2[1],rb2[2],rb2[3])/360*(2*math.pi)
+def compareTorsion(pybmol1, pybmol2, rb):
+    angle1 = pybmol1.OBMol.GetTorsion(rb[0],rb[1],rb[2],rb[3])/360*(2*math.pi)
+    angle2 = pybmol2.OBMol.GetTorsion(rb[0],rb[1],rb[2],rb[3])/360*(2*math.pi)
     return (angle1-angle2) - math.floor((angle1-angle2)/(2*math.pi))*(2*math.pi)
 
 #--------------------------------------------------
-def compareFileTorsion(file1, file2, rb1, rb2):
+def compareFileTorsion(file1, file2, rb):
     file1_ext = os.path.splitext(file1)[1][1:]
     file2_ext = os.path.splitext(file2)[1][1:]
     pybmol1 = next(pybel.readfile(file1_ext, file1))
     pybmol2 = next(pybel.readfile(file2_ext, file2))
-    return compareTorsion(pybmol1, pybmol2, rb1, rb2)
+    return compareTorsion(pybmol1, pybmol2, rb)
