@@ -29,7 +29,8 @@ class QChem(FileIOCalculator):
                    'frequency'    : 'FREQ',
                    'single_point' : 'SP'}
     method      = {'B3LYP'        : 'B3LYP',
-                   'RIMP2'        : 'RIMP2'}
+                   'RIMP2'        : 'RIMP2',
+                   'wB97M-V'      : 'wB97M-V'}
     basis       = {'STO-3G'       : 'STO-3G',
                    '3-21G'        : '3-21G',
                    '6-31G'        : '6-31G',
@@ -111,6 +112,10 @@ class QChem(FileIOCalculator):
         f.write("MAX_SUB_FILE_NUM    "     + str(p.maxfile)          + "\n")
         f.write("MEM_STATIC          "     + str(p.mem_static)       + "\n")
         f.write("MEM_TOTAL           "     + str(p.mem_total)        + "\n")
+        if (p.xc in ["wB97M-V"]):
+            f.write("XC_GRID             " + "000075000302"          + "\n")
+        if (p.xc == "wB97M-V"):
+            f.write("NL_GRID             " + "1"                     + "\n")
         f.write("$end\n")
 
     def read_output(self):

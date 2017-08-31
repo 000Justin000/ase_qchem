@@ -19,6 +19,8 @@ def read_qchem_sp_output(filename):
         #------------------------------------------------
         if lines[i].find("total energy =") >= 0:
             Efinal = float(lines[i].split()[4])
+        elif lines[i].find("Total energy in") >= 0:
+            Efinal = float(lines[i].split()[8])
         #------------------------------------------------
         i += 1
         #------------------------------------------------
