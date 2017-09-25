@@ -34,8 +34,7 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 #------------------------------------------------
 QMFUNC     = 'wB97M-V'
 DISPERSION = 'None'
-QMBASIS    = 'STO-3G'
-# QMBASIS    = 'aug-cc-pVTZ'
+QMBASIS    = 'aug-cc-pVTZ'
 TASK       = 'single_point'
 #------------------------------------------------
 QMtol = 4.5e-3
@@ -57,7 +56,7 @@ iproc = MPI.COMM_WORLD.Get_rank()
 if (jobname   == "path_1001"):
     rotlist = numpy.array([[360,  0], [310, 40], [250,70], [220,120], [190,160], [170,190],  [100,250], [ 30,290]])
 elif (jobname == "path_1101"):
-    rotlist = numpy.array([[360,  0], [310, 70], [250, 90], [230,150], [170,200], [ 80,240], [ 80,290], [ 60,300]])
+    rotlist = numpy.array([[360,  0], [310, 70], [250, 90], [230,150], [170,200], [ 80,240], [ 80,290], [ 70,300]])
 elif (jobname == "path_1111"):
     rotlist = numpy.array([[360,  0], [320, 60], [270,100], [200,130], [160,160], [170,200], [120,280], [ 40,300]])
 elif (jobname == "path_10n01"):
@@ -68,7 +67,9 @@ elif (jobname == "path_11n11"):
     rotlist = numpy.array([[360,  0], [310, 40], [260, 90], [220,140], [180,180], [140,220], [ 90,260], [ 40,310]])
 #------------------------------------------------
 rotlist = rotlist - numpy.floor(rotlist/360)*360
-print(rotlist)
+if (iproc == 0):
+    print(rotlist)
+    sys.stdout.flush()
 rotlist = rotlist / 360.0 * (2*math.pi)
 #------------------------------------------------
 diangles = []
@@ -137,7 +138,7 @@ if (iproc == 0):
     f = open(dir_name+"/energies", "w")
     #--------------------------------------------
     for i in range(0, len(energies)):
-        f.write("%5.3f  %5.3f  %15.7f\n" % (energies[i][0], energies[i][1], energies[i][2]))
+        f.write("%3.0f  %3.0f  %15.7f\n" % (energies[i][0]/(2*math.pi)*360, energies[i][1]/(2*math.pi)*360, energies[i][2]))
     #--------------------------------------------
     f.close()
     #--------------------------------------------
