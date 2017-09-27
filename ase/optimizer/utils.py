@@ -95,9 +95,15 @@ def getPybmol(pybmol, coords):
         atom.OBAtom.SetVector(coord[0], coord[1], coord[2])
     return molr
 
-#--------------------------------------------------
 def compareTorsion(pybmol1, pybmol2, rb):
     angle1 = pybmol1.OBMol.GetTorsion(rb[0],rb[1],rb[2],rb[3])/360*(2*math.pi)
     angle2 = pybmol2.OBMol.GetTorsion(rb[0],rb[1],rb[2],rb[3])/360*(2*math.pi)
     return (angle1-angle2) - math.floor((angle1-angle2)/(2*math.pi))*(2*math.pi)
 
+#--------------------------------------------------
+def compareFileTorsion(file1, file2, rb):
+    file1_ext = os.path.splitext(file1)[1][1:]
+    file2_ext = os.path.splitext(file2)[1][1:]
+    pybmol1 = next(pybel.readfile(file1_ext, file1))
+    pybmol2 = next(pybel.readfile(file2_ext, file2))
+    return compareTorsion(pybmol1, pybmol2, rb)
