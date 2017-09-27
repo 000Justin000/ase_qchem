@@ -118,7 +118,7 @@ for diangle in diangles_loc:
     #----------------------------------------
     if ((asemol is not None) and (E is not None)):
         energies_loc.append((diangle[0], diangle[1], E))
-        ase.io.write(dir_name+"/" + prefix +".pdb", asemol)
+        ase.io.write(dir_name+"/" + prefix +".xyz", asemol)
         print("theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f" % (diangle[0], diangle[1], E))
         sys.stdout.flush()
     else:

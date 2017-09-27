@@ -86,7 +86,7 @@ for diangle in diangles_loc:
     #----------------------------------------
     prefix = "theta1_"+"{:5.3f}".format(diangle[0])+"_theta2_"+"{:5.3f}".format(diangle[1])
     #----------------------------------------
-    pybmol = next(pybel.readfile("pdb", geom_path + "/" + prefix + ".pdb"))
+    pybmol = next(pybel.readfile("xyz", geom_path + "/" + prefix + ".xyz"))
     #----------------------------------------
     asemol = pyb2ase(pybmol, iproc)
     #----------------------------------------

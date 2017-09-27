@@ -54,7 +54,7 @@ iproc = MPI.COMM_WORLD.Get_rank()
 #------------------------------------------------
 #         read the molecule with pybel          #
 #------------------------------------------------
-pybmol = next(pybel.readfile("pdb", jobname+".pdb"))
+pybmol = next(pybel.readfile("xyz", jobname+".xyz"))
 #------------------------------------------------
 
 #------------------------------------------------
@@ -164,7 +164,7 @@ for i in configId_loc:
     asemol, E = calc.run(asemol)
     if ((asemol is not None) and (E is not None)):
         energies_loc.append((i,E))
-        ase.io.write(dir_name+"/config_" + "{:04d}".format(i) + ".pdb", asemol)
+        ase.io.write(dir_name+"/config_" + "{:04d}".format(i) + ".xyz", asemol)
         print(("config %04d:    %15.7f" % (i, E)))
         sys.stdout.flush()
     else:

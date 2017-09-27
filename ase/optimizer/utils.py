@@ -17,17 +17,17 @@ from ase.constraints import FixInternals, Hookean
 
 #--------------------------------------------------
 def pyb2ase(pybmol, pid):
-    pybmol.write("pdb", "tmp"+"{:04d}".format(pid)+".pdb", overwrite=True)
-    asemol = ase.io.read("tmp"+"{:04d}".format(pid)+".pdb")
-    os.remove("tmp"+"{:04d}".format(pid)+".pdb")
+    pybmol.write("xyz", "tmp"+"{:04d}".format(pid)+".xyz", overwrite=True)
+    asemol = ase.io.read("tmp"+"{:04d}".format(pid)+".xyz")
+    os.remove("tmp"+"{:04d}".format(pid)+".xyz")
     #--------------
     return asemol
 
 #--------------------------------------------------
 def ase2pyb(asemol, pid):
-    ase.io.write("tmp"+"{:04d}".format(pid)+".pdb", asemol)
-    pybmol = next(pybel.readfile("pdb", "tmp"+"{:04d}".format(pid)+".pdb"))
-    os.remove("tmp"+"{:04d}".format(pid)+".pdb")
+    ase.io.write("tmp"+"{:04d}".format(pid)+".xyz", asemol)
+    pybmol = next(pybel.readfile("xyz", "tmp"+"{:04d}".format(pid)+".xyz"))
+    os.remove("tmp"+"{:04d}".format(pid)+".xyz")
     #--------------
     return pybmol
 
@@ -71,9 +71,9 @@ def geomOptMM(pybmol, tcs, MMFF, tol):
 
 #--------------------------------------------------
 def pybview(pybmol, pid):
-    pybmol.write("pdb", "tmp"+"{:04d}".format(pid)+".pdb", overwrite=True)
-    os.system("avogadro tmp"+"{:04d}".format(pid)+".pdb")
-    os.remove("tmp"+"{:04d}".format(pid)+".pdb")
+    pybmol.write("xyz", "tmp"+"{:04d}".format(pid)+".xyz", overwrite=True)
+    os.system("avogadro tmp"+"{:04d}".format(pid)+".xyz")
+    os.remove("tmp"+"{:04d}".format(pid)+".xyz")
 
 #--------------------------------------------------
 def getRMSD(pybmol1, pybmol2):
