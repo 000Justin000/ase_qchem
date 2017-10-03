@@ -35,11 +35,13 @@ class QChem(FileIOCalculator):
                    '3-21G'        : '3-21G',
                    '6-31G'        : '6-31G',
                    '6-31G*'       : '6-31G*',
+                   '6-31++G**'    : '6-31++G(d,p)',
                    'aug-cc-pVDZ'  : 'aug-cc-pVDZ',
                    'aug-cc-pVTZ'  : 'aug-cc-pVTZ'}
     dft_d       = {'None'         : 'FALSE',
                    'd2'           : 'EMPIRICAL_GRIMME',
-                   'd3'           : 'EMPIRICAL_GRIMME3'}
+                   'd3'           : 'EMPIRICAL_GRIMME3',
+                   'd3_op'        : 'd3_op'}
     #-----------------------------------------
 
     default_parameters = dict(
