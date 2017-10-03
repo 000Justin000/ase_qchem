@@ -49,6 +49,9 @@ class QChem(FileIOCalculator):
         comment=None,
         tcs=None,
         opt_maxcycle=50,
+        opt_tol_grad=300,
+        opt_tol_disp=1200,
+        opt_tol_e=100,
         symmetry=False,
         basis='STO-3G',
         thresh=12,
@@ -90,32 +93,35 @@ class QChem(FileIOCalculator):
                 f.write("CONSTRAINT\n")
                 for tc in p.tcs:
                     di_angle = tc[1]*360/(2*math.pi)
-                    di_angle = np.mod(di_angle+180.0, 360.0)-180.0
+                    di_angle = di_angle - np.floor((di_angle+180.0)/360.0)*360.0
                     f.write("tors    " + str(tc[0][0]) + "    " + str(tc[0][1]) + "    " + str(tc[0][2]) + "    " + str(tc[0][3]) + "    " + str(di_angle) + "\n")
                 f.write("ENDCONSTRAINT\n")
                 f.write("$end\n\n")
 
         f.write("$rem\n")
-        f.write("JOBTYPE             "     + self.jobtype[p.task]    + "\n")
-        f.write("METHOD              "     + self.method[p.xc]       + "\n")
-        f.write("DFT_D               "     + self.dft_d[p.disp]      + "\n")
-        f.write("BASIS               "     + self.basis[p.basis]     + "\n")
+        f.write("JOBTYPE                   "     + self.jobtype[p.task]    + "\n")
+        f.write("METHOD                    "     + self.method[p.xc]       + "\n")
+        f.write("DFT_D                     "     + self.dft_d[p.disp]      + "\n")
+        f.write("BASIS                     "     + self.basis[p.basis]     + "\n")
         if (p.task == "optimization"):
-            f.write("GEOM_OPT_MAX_CYCLES " + str(p.opt_maxcycle)     + "\n")
+            f.write("GEOM_OPT_MAX_CYCLES       " + str(p.opt_maxcycle)     + "\n")
+            f.write("GEOM_OPT_TOL_GRADIENT     " + str(p.opt_tol_grad)     + "\n")
+            f.write("GEOM_OPT_TOL_DISPLACEMENT " + str(p.opt_tol_disp)     + "\n")
+            f.write("GEOM_OPT_TOL_ENERGY       " + str(p.opt_tol_e)        + "\n")
         if (p.xc == "RIMP2"):
-            f.write("AUX_BASIS           " + "RIMP2-" + self.basis[p.basis] + "\n")
+            f.write("AUX_BASIS                 " + "RIMP2-" + self.basis[p.basis] + "\n")
         if (p.xc in ["RIMP2"]):
-            f.write("N_FROZEN_CORE       " + "FC"                    + "\n")
-        f.write("SYMMETRY            "     + str(p.symmetry)         + "\n")
-        f.write("THRESH              "     + str(p.thresh)           + "\n")
-        f.write("SCF_CONVERGENCE     "     + str(p.scf_convergence)  + "\n")
-        f.write("MAX_SUB_FILE_NUM    "     + str(p.maxfile)          + "\n")
-        f.write("MEM_STATIC          "     + str(p.mem_static)       + "\n")
-        f.write("MEM_TOTAL           "     + str(p.mem_total)        + "\n")
+            f.write("N_FROZEN_CORE             " + "FC"                    + "\n")
+        f.write("SYMMETRY                  "     + str(p.symmetry)         + "\n")
+        f.write("THRESH                    "     + str(p.thresh)           + "\n")
+        f.write("SCF_CONVERGENCE           "     + str(p.scf_convergence)  + "\n")
+        f.write("MAX_SUB_FILE_NUM          "     + str(p.maxfile)          + "\n")
+        f.write("MEM_STATIC                "     + str(p.mem_static)       + "\n")
+        f.write("MEM_TOTAL                 "     + str(p.mem_total)        + "\n")
         if (p.xc in ["wB97M-V"]):
-            f.write("XC_GRID             " + "000075000302"          + "\n")
+            f.write("XC_GRID                   " + "000075000302"          + "\n")
         if (p.xc == "wB97M-V"):
-            f.write("NL_GRID             " + "1"                     + "\n")
+            f.write("NL_GRID                   " + "1"                     + "\n")
         f.write("$end\n")
 
     def read_output(self):

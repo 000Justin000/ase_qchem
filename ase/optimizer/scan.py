@@ -59,8 +59,8 @@ pybmol = next(pybel.readfile("xyz", jobname+".xyz"))
 #------------------------------------------------
 
 #------------------------------------------------
-angle_1 = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
-angle_2 = numpy.linspace(0.0, 2*math.pi, nrot, endpoint=False)
+angle_1 = numpy.linspace(-180.0, 180.0, nrot, endpoint=False)
+angle_2 = numpy.linspace(-180.0, 180.0, nrot, endpoint=False)
 diangles  = []
 #------------------------------------------------
 for angle_i in angle_1:
@@ -89,17 +89,20 @@ energies_loc = []
 #------------------------------------------------
 for diangle in diangles_loc:
     #----------------------------------------
-    angle_i = pybmol.OBMol.GetTorsion(rb1[0],rb1[1],rb1[2],rb1[3])/360*(2*math.pi) + diangle[0]
-    angle_j = pybmol.OBMol.GetTorsion(rb2[0],rb2[1],rb2[2],rb2[3])/360*(2*math.pi) + diangle[1]
+    angle_i = (pybmol.OBMol.GetTorsion(rb1[0],rb1[1],rb1[2],rb1[3]) + diangle[0]) / 360 * (2*math.pi)
+    angle_j = (pybmol.OBMol.GetTorsion(rb2[0],rb2[1],rb2[2],rb2[3]) + diangle[1]) / 360 * (2*math.pi)
     #----------------------------------------
     molr = pybmol.clone
-    molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
-    molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
-    molr = geomOptMM(molr, [[rb1, angle_i],[rb2, angle_j]], MMFF, MMtol)
+    #----------------------------------------
+    # use molecular mechanics to optimize
+    #----------------------------------------
+    # molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
+    # molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
+    # molr = geomOptMM(molr, [[rb1, angle_i],[rb2, angle_j]], MMFF, MMtol)
     #----------------------------------------
     asemol = pyb2ase(molr, iproc)
     #----------------------------------------
-    prefix = "theta1_"+"{:5.3f}".format(diangle[0])+"_theta2_"+"{:5.3f}".format(diangle[1])
+    prefix = "theta1_"+"{:+04.0f}".format(diangle[0])+"_theta2_"+"{:+04.0f}".format(diangle[1])
     #----------------------------------------
     calc = QChem(xc=QMFUNC, 
                  disp=DISPERSION,
@@ -107,7 +110,10 @@ for diangle in diangles_loc:
                  task=TASK,
                  symmetry=False,
                  tcs=[[rb1, angle_i],[rb2,angle_j]],
-                 opt_maxcycle=200,
+                 opt_maxcycle=500,
+                 opt_tol_grad=5,
+                 opt_tol_disp=5,
+                 opt_tol_e=5,
                  thresh=12,
                  scf_convergence=8,
                  maxfile=128,
@@ -119,10 +125,10 @@ for diangle in diangles_loc:
     if ((asemol is not None) and (E is not None)):
         energies_loc.append((diangle[0], diangle[1], E))
         ase.io.write(dir_name+"/" + prefix +".xyz", asemol)
-        print("theta1: %5.3f,  theta2: %5.3f,  energy: %15.7f" % (diangle[0], diangle[1], E))
+        print("theta1: %+04.0f,  theta2: %+04.0f,  energy: %15.7f" % (diangle[0], diangle[1], E))
         sys.stdout.flush()
     else:
-        print("theta1: %5.3f,  theta2: %5.3f,  optimization failed" % (diangle[0], diangle[1]))
+        print("theta1: %+04.0f,  theta2: %+04.0f,  optimization failed" % (diangle[0], diangle[1]))
         sys.stdout.flush()
     #----------------------------------------
 
@@ -136,7 +142,7 @@ if (iproc == 0):
     f = open(dir_name+"/energies", "w")
     #--------------------------------------------
     for i in range(0, len(energies)):
-        f.write("%5.3f  %5.3f  %15.7f\n" % (energies[i][0], energies[i][1], energies[i][2]))
+        f.write("%+04.0f  %+04.0f  %15.7f\n" % (energies[i][0], energies[i][1], energies[i][2]))
     #--------------------------------------------
     f.close()
     #--------------------------------------------
