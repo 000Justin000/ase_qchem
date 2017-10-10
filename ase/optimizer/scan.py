@@ -34,8 +34,8 @@ rb2 = [int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9])]  
 #------------------------------------------------
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
-DISPERSION = 'd3'
-QMBASIS    = '6-31G*'
+DISPERSION = 'd3_op'
+QMBASIS    = 'STO-3G'
 TASK       = 'optimization'
 #------------------------------------------------
 MMtol = 1.0e-8
@@ -96,9 +96,9 @@ for diangle in diangles_loc:
     #----------------------------------------
     # use molecular mechanics to optimize
     #----------------------------------------
-    # molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
-    # molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
-    # molr = geomOptMM(molr, [[rb1, angle_i],[rb2, angle_j]], MMFF, MMtol)
+#   molr.OBMol.SetTorsion(rb1[0],rb1[1],rb1[2],rb1[3], angle_i)
+#   molr.OBMol.SetTorsion(rb2[0],rb2[1],rb2[2],rb2[3], angle_j)
+#   molr = geomOptMM(molr, [[rb1, angle_i],[rb2, angle_j]], MMFF, MMtol)
     #----------------------------------------
     asemol = pyb2ase(molr, iproc)
     #----------------------------------------
@@ -110,8 +110,10 @@ for diangle in diangles_loc:
                  task=TASK,
                  symmetry=False,
                  tcs=[[rb1, angle_i],[rb2,angle_j]],
-                 opt_maxcycle=500,
+                 opt_maxcycle=100,
+                 opt_tol_grad=300,
                  opt_tol_disp=1,
+                 opt_tol_e=100,
                  thresh=12,
                  scf_convergence=8,
                  maxfile=128,

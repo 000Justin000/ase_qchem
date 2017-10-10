@@ -2,6 +2,7 @@
 http://www.nwchem-sw.org/
 """
 
+import sys
 import os
 import subprocess
 
@@ -149,7 +150,6 @@ class QChem(FileIOCalculator):
             os.chdir(olddir)
 
         if errorcode:
-            raise RuntimeError('%s returned an error: %d' %
-                               (self.name, errorcode))
+            warn('%s returned an error: %d' % (self.name, errorcode), RuntimeWarning)
 
         return self.read_output()
