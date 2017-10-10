@@ -2,7 +2,6 @@
 http://www.nwchem-sw.org/
 """
 
-import sys
 import os
 import subprocess
 
