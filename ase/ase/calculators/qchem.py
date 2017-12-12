@@ -35,7 +35,7 @@ class QChem(FileIOCalculator):
                    '3-21G'        : '3-21G',
                    '6-31G'        : '6-31G',
                    '6-31G*'       : '6-31G*',
-                   '6-31++G**'    : '6-31++G(d,p)',
+                   '6-311++G**'    : '6-311++G(d,p)',
                    'aug-cc-pVDZ'  : 'aug-cc-pVDZ',
                    'aug-cc-pVTZ'  : 'aug-cc-pVTZ'}
     dft_d       = {'None'         : 'FALSE',
