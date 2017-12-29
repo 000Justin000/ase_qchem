@@ -35,7 +35,7 @@ class QChem(FileIOCalculator):
                    '3-21G'        : '3-21G',
                    '6-31G'        : '6-31G',
                    '6-31G*'       : '6-31G*',
-                   '6-311++G**'    : '6-311++G(d,p)',
+                   '6-311++G**'   : '6-311++G(d,p)',
                    'aug-cc-pVDZ'  : 'aug-cc-pVDZ',
                    'aug-cc-pVTZ'  : 'aug-cc-pVTZ'}
     dft_d       = {'None'         : 'FALSE',
@@ -94,9 +94,13 @@ class QChem(FileIOCalculator):
                 f.write("$opt\n")
                 f.write("CONSTRAINT\n")
                 for tc in p.tcs:
-                    di_angle = tc[1]*360/(2*math.pi)
+                    di_angle = tc[1] # *360/(2*math.pi)
                     di_angle = di_angle - np.floor((di_angle+180.0)/360.0)*360.0
-                    f.write("tors    " + str(tc[0][0]) + "    " + str(tc[0][1]) + "    " + str(tc[0][2]) + "    " + str(tc[0][3]) + "    " + str(di_angle) + "\n")
+                    f.write("tors    " + "{:8d}".format(tc[0][0]) + "    " \
+                                       + "{:8d}".format(tc[0][1]) + "    " \
+                                       + "{:8d}".format(tc[0][2]) + "    " \
+                                       + "{:8d}".format(tc[0][3]) + "    " \
+                                       + "{:+8.3f}".format(di_angle) + "\n")
                 f.write("ENDCONSTRAINT\n")
                 f.write("$end\n\n")
 
