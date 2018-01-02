@@ -48,6 +48,7 @@ def read_qchem_opt_output(filename):
 
     i = 0
     natoms = -1
+    max_cycle_reached = False
     while i < len(lines):
         #------------------------------------------------
         if (natoms == -1):
@@ -71,9 +72,32 @@ def read_qchem_opt_output(filename):
                 atoms = read(StringIO(string), format='xyz')
                 atoms.set_cell((0., 0., 0.))  # no unit cell defined
                 i += natoms + 5
+        elif lines[i].find("MAXIMUM OPTIMIZATION CYCLES REACHED") >= 0:
+            max_cycle_reached = True
+            break
         else:
             i += 1
 
+    if max_cycle_reached:
+        i = len(lines) - 1
+        while i >= 0:
+            if lines[i].find("Optimization Cycle:") >= 0:
+                string = ''
+                string += (str(natoms) + "\n")
+                string += "\n"
+                for j in range(4, natoms + 4):
+                    xyzstring = lines[i + j]
+                    content = xyzstring.split()
+                    string += (content[1] + "    " + content[2] + "    " + content[3] + "    " + content[4] + "\n")
+                atoms = read(StringIO(string), format='xyz')
+                atoms.set_cell((0., 0., 0.))  # no unit cell defined
+
+                Efinal = float(lines[i+7+natoms].split()[2])
+
+                break
+            else:
+                i -= 1
+                
     if isinstance(filename, basestring):
         f.close()
 
