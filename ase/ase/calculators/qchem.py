@@ -2,7 +2,7 @@
 http://www.nwchem-sw.org/
 """
 
-import os
+import os, sys
 import subprocess
 
 import math
