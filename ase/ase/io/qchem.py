@@ -215,7 +215,9 @@ def save_xyz(filename, atoms, comment=None):
             Natom += len(mol)
 
         f.write(str(Natom)+'\n')
-        f.write(str(comment)+'\n')
+        if (comment is not None):
+            f.write(str(comment))
+        f.write('\n')
 
         for mol in atoms:
             for atom in mol:
@@ -229,7 +231,9 @@ def save_xyz(filename, atoms, comment=None):
         Natom = len(mol)
 
         f.write(str(Natom)+'\n')
-        f.write(str(comment)+'\n')
+        if (comment is not None):
+            f.write(str(comment))
+        f.write('\n')
 
         for atom in mol:
             symbol = atom.symbol
@@ -237,5 +241,3 @@ def save_xyz(filename, atoms, comment=None):
                            + "    " + "{:+15.8f}".format(atom.position[1]) \
                            + "    " + "{:+15.8f}".format(atom.position[2]) \
                            + "\n")
-
-    f.write('$end\n\n')

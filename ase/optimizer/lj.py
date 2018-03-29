@@ -29,7 +29,7 @@ from utils import *
 #------------------------------------------------
 jobname = str(sys.argv[1])
 #------------------------------------------------
-ref = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])]     # dihedral idx
+ref = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])]     # dihedral idx
 #------------------------------------------------
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
@@ -84,17 +84,18 @@ for distance in distances_loc:
     #----------------------------------------
     # displacement along given direction
     #----------------------------------------
-    vec0  = openbabel.vector3(pybmol.OBMol.GetAtom(ref[0]).GetVector())
-    vec1  = openbabel.vector3(pybmol.OBMol.GetAtom(ref[1]).GetVector())
-    vec2  = openbabel.vector3(pybmol.OBMol.GetAtom(ref[2]).GetVector())
-    vec1 -= vec0
-    vec2 -= vec1
-    vec   = openbabel.cross(vec1, vec2)
-    vec.normalize()
-    vec  *= distance
-    pybmol_disp.OBMol.Translate(vec)
+    coords = numpy.zeros((3,4))
+    for i in range(0,4):
+        coords[0,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetX()
+        coords[1,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetY()
+        coords[2,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetZ()
     #----------------------------------------
-    print(type(pybmol))
+    coords = coords - numpy.mean(coords, axis=1).reshape((3,1))
+    u,s,v = numpy.linalg.svd(coords)
+    #----------------------------------------
+    vec = u[:,-1] * distance
+    pybmol_disp.OBMol.Translate(openbabel.vector3(vec[0], vec[1], vec[2]))
+    #----------------------------------------
     asemol = pyb2ase(pybmol, iproc)
     asemol_disp = pyb2ase(pybmol_disp, iproc)
     #----------------------------------------
