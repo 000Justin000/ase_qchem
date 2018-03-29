@@ -11,7 +11,7 @@ import numpy as np
 from warnings import warn
 from ase.atoms import Atoms
 from ase.units import Hartree, Bohr
-from ase.io.qchem import write_qchem, read_qchem_opt_output, read_qchem_sp_output
+from ase.io.qchem import write_qchem, save_xyz, read_qchem_opt_output, read_qchem_sp_output, read_qchem_bsse_output
 from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 
 
@@ -27,7 +27,8 @@ class QChem(FileIOCalculator):
     #-----------------------------------------
     jobtype     = {'optimization' : 'OPT',
                    'frequency'    : 'FREQ',
-                   'single_point' : 'SP'}
+                   'single_point' : 'SP',
+                   'bsse'         : 'BSSE'}
     method      = {'B3LYP'        : 'B3LYP',
                    'RIMP2'        : 'RIMP2',
                    'wB97M-V'      : 'wB97M-V'}
@@ -84,11 +85,16 @@ class QChem(FileIOCalculator):
 
     def write_input(self, atoms=None, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
+
         p = self.parameters
-        p.write(self.label + '.ase')
+        # p.write(self.label + '.ase')
+
         f = open(self.label + '.in', 'w')
         write_qchem(f, atoms, p.comment)
-        
+
+        g = open(self.label + '.xyz', 'w')
+        save_xyz(g, atoms, p.comment)
+
         if (p.task == "optimization"):
             if p.tcs is not None:
                 f.write("$opt\n")
@@ -136,6 +142,8 @@ class QChem(FileIOCalculator):
             return read_qchem_opt_output(self.label + ".out")
         elif (p.task == "single_point"):
             return read_qchem_sp_output(self.label + ".out")
+        elif (p.task == "bsse"):
+            return read_qchem_bsse_output(self.label + ".out")
 
     def run(self, atoms):
         self.write_input(atoms)
@@ -147,6 +155,7 @@ class QChem(FileIOCalculator):
         olddir = os.getcwd()
         try:
             os.chdir(self.directory)
+            print(command)
             errorcode = subprocess.call(command, shell=True)
             subprocess.call("rm -rf $QCSCRATCH/" + self.prefix + ".save", shell=True)
         finally:

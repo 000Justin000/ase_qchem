@@ -30,6 +30,31 @@ def read_qchem_sp_output(filename):
 
     return Efinal
 
+def read_qchem_bsse_output(filename):
+    """Method to read final energy from a qchem bsse binding energy output."""
+
+    f = filename
+    if isinstance(filename, basestring):
+        f = open(filename)
+
+    lines = f.readlines()
+
+    Ebinding = None
+
+    i = 0
+    #----------------------------------------------------
+    while i < len(lines):
+        #------------------------------------------------
+        if lines[i].find("DE, kJ/mol") >= 0:
+            Ebinding = float(lines[i].split()[3])
+        #------------------------------------------------
+        i += 1
+        #------------------------------------------------
+
+    if isinstance(filename, basestring):
+        f.close()
+
+    return Ebinding
 
 
 
@@ -106,7 +131,6 @@ def read_qchem_opt_output(filename):
 
 
 
-
 def read_qchem(filename):
     """Method to read geometry from an qchem input file."""
     f = filename
@@ -137,8 +161,6 @@ def read_qchem(filename):
 
 
 
-
-
 def write_qchem(filename, atoms, comment=None):
     """Method to write nwchem coord file."""
 
@@ -152,9 +174,68 @@ def write_qchem(filename, atoms, comment=None):
         f.write(str(comment)+'\n')
         f.write('$end\n\n')
 
+
     f.write('$molecule\n')
     f.write('0  1\n')
-    for atom in atoms:
-        symbol = atom.symbol
-        f.write(symbol + ' ' + str(atom.position[0]) + ' ' + str(atom.position[1]) + ' ' + str(atom.position[2]) + '\n')
+
+    if (type(atoms) == list):
+        for mol in atoms:
+            f.write("--\n")
+            f.write('0  1\n')
+            for atom in mol:
+                symbol = atom.symbol
+                f.write(symbol + "    " + "{:+15.8f}".format(atom.position[0]) \
+                               + "    " + "{:+15.8f}".format(atom.position[1]) \
+                               + "    " + "{:+15.8f}".format(atom.position[2]) \
+                               + "\n")
+    else:
+        mol = atoms
+        for atom in mol:
+            symbol = atom.symbol
+            f.write(symbol + "    " + "{:+15.8f}".format(atom.position[0]) \
+                           + "    " + "{:+15.8f}".format(atom.position[1]) \
+                           + "    " + "{:+15.8f}".format(atom.position[2]) \
+                           + "\n")
+
+    f.write('$end\n\n')
+
+
+
+def save_xyz(filename, atoms, comment=None):
+    """Save to xyz file."""
+
+    if isinstance(filename, basestring):
+        f = open(filename, 'w')
+    else:  # Assume it's a 'file-like object'
+        f = filename
+
+    if (type(atoms) == list):
+        Natom = 0
+        for mol in atoms:
+            Natom += len(mol)
+
+        f.write(str(Natom)+'\n')
+        f.write(str(comment)+'\n')
+
+        for mol in atoms:
+            for atom in mol:
+                symbol = atom.symbol
+                f.write(symbol + "    " + "{:+15.8f}".format(atom.position[0]) \
+                               + "    " + "{:+15.8f}".format(atom.position[1]) \
+                               + "    " + "{:+15.8f}".format(atom.position[2]) \
+                               + "\n")
+    else:
+        mol = atoms
+        Natom = len(mol)
+
+        f.write(str(Natom)+'\n')
+        f.write(str(comment)+'\n')
+
+        for atom in mol:
+            symbol = atom.symbol
+            f.write(symbol + "    " + "{:+15.8f}".format(atom.position[0]) \
+                           + "    " + "{:+15.8f}".format(atom.position[1]) \
+                           + "    " + "{:+15.8f}".format(atom.position[2]) \
+                           + "\n")
+
     f.write('$end\n\n')
