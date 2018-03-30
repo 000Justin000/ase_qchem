@@ -55,7 +55,7 @@ iproc = MPI.COMM_WORLD.Get_rank()
 #------------------------------------------------
 #         read the molecule with pybel          #
 #------------------------------------------------
-pybmol = next(pybel.readfile("xyz", jobname+".xyz"))
+pybmol = next(pybel.readfile("xyz", "opt/xyz/"+jobname+".xyz"))
 #------------------------------------------------
 
 #------------------------------------------------
