@@ -83,16 +83,16 @@ class QChem(FileIOCalculator):
             system_changes.remove('pbc')
         return system_changes
 
-    def write_input(self, atoms=None, properties=None, system_changes=None):
+    def write_input(self, atoms=None, properties=None, system_changes=None, extension=''):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
         p = self.parameters
-        # p.write(self.label + '.ase')
+        # p.write(self.label + extension + '.ase')
 
-        f = open(self.label + '.in', 'w')
+        f = open(self.label + extension + '.in', 'w')
         write_qchem(f, atoms, p.comment)
 
-        g = open(self.label + '.xyz', 'w')
+        g = open(self.label + extension + '.xyz', 'w')
         save_xyz(g, atoms, p.comment)
 
         if (p.task == "optimization"):
@@ -136,32 +136,31 @@ class QChem(FileIOCalculator):
             f.write("NL_GRID                   " + "1"                     + "\n")
         f.write("$end\n")
 
-    def read_output(self):
+    def read_output(self, extension):
         p = self.parameters
         if (p.task == "optimization"):
-            return read_qchem_opt_output(self.label + ".out")
+            return read_qchem_opt_output(self.label + extension + ".out")
         elif (p.task == "single_point"):
-            return read_qchem_sp_output(self.label + ".out")
+            return read_qchem_sp_output(self.label + extension + ".out")
         elif (p.task == "bsse"):
-            return read_qchem_bsse_output(self.label + ".out")
+            return read_qchem_bsse_output(self.label + extension + ".out")
 
-    def run(self, atoms):
-        self.write_input(atoms)
+    def run(self, atoms, extension=''):
+        self.write_input(atoms=atoms, extension=extension)
         if self.command is None:
             raise RuntimeError('Please set $%s environment variable ' %
                                ('ASE_' + self.name.upper() + '_COMMAND') +
                                'or supply the command keyword')
-        command = self.command.replace('PREFIX', self.prefix)
+        command = self.command.replace('PREFIX', self.prefix + extension)
         olddir = os.getcwd()
         try:
             os.chdir(self.directory)
-            print(command)
             errorcode = subprocess.call(command, shell=True)
-            subprocess.call("rm -rf $QCSCRATCH/" + self.prefix + ".save", shell=True)
+            subprocess.call("rm -rf $QCSCRATCH/" + self.prefix + extension + ".save", shell=True)
         finally:
             os.chdir(olddir)
 
         if errorcode:
             warn('%s returned an error: %d' % (self.name, errorcode), RuntimeWarning)
 
-        return self.read_output()
+        return self.read_output(extension)

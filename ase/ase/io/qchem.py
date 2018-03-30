@@ -188,6 +188,14 @@ def write_qchem(filename, atoms, comment=None):
                                + "    " + "{:+15.8f}".format(atom.position[1]) \
                                + "    " + "{:+15.8f}".format(atom.position[2]) \
                                + "\n")
+    elif (type(atoms) == tuple):
+        for mid, mol in enumerate(atoms):
+            for atom in mol:
+                symbol = (atom.symbol) if (mid == 0) else ("@"+atom.symbol)
+                f.write(symbol + "    " + "{:+15.8f}".format(atom.position[0]) \
+                               + "    " + "{:+15.8f}".format(atom.position[1]) \
+                               + "    " + "{:+15.8f}".format(atom.position[2]) \
+                               + "\n")
     else:
         mol = atoms
         for atom in mol:
@@ -209,7 +217,7 @@ def save_xyz(filename, atoms, comment=None):
     else:  # Assume it's a 'file-like object'
         f = filename
 
-    if (type(atoms) == list):
+    if ((type(atoms) == list) or (type(atoms) == tuple)):
         Natom = 0
         for mol in atoms:
             Natom += len(mol)

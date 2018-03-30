@@ -34,14 +34,15 @@ ref = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3_op'
+# QMBASIS    = '6-31G*'
 QMBASIS    = 'STO-3G'
-TASK       = 'bsse'
+TASK       = 'single_point'
 #------------------------------------------------
 MMtol = 1.0e-8
 QMtol = 4.5e-3
 ertol = 1.0e-10
 #------------------------------------------------
-distances = [5.0, 6.0, 7.0, 8.0]
+distances = [3.0, 3.5, 4.0, 4.2, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5.0, 5.1, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 5.9, 6.0, 6.5, 7.0, 8.0, 10.0]
 #------------------------------------------------
 
 
@@ -55,7 +56,7 @@ iproc = MPI.COMM_WORLD.Get_rank()
 #------------------------------------------------
 #         read the molecule with pybel          #
 #------------------------------------------------
-pybmol = next(pybel.readfile("xyz", jobname+".xyz"))
+pybmol = next(pybel.readfile("xyz", "opt/xyz/"+jobname+".xyz"))
 #------------------------------------------------
 
 #------------------------------------------------
@@ -86,9 +87,9 @@ for distance in distances_loc:
     #----------------------------------------
     coords = numpy.zeros((3,4))
     for i in range(0,4):
-        coords[0,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetX()
-        coords[1,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetY()
-        coords[2,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetZ()
+        coords[0,i] = pybmol.OBMol.GetAtom(ref[i]).GetVector().GetX()
+        coords[1,i] = pybmol.OBMol.GetAtom(ref[i]).GetVector().GetY()
+        coords[2,i] = pybmol.OBMol.GetAtom(ref[i]).GetVector().GetZ()
     #----------------------------------------
     coords = coords - numpy.mean(coords, axis=1).reshape((3,1))
     u,s,v = numpy.linalg.svd(coords)
@@ -99,7 +100,7 @@ for distance in distances_loc:
     asemol = pyb2ase(pybmol, iproc)
     asemol_disp = pyb2ase(pybmol_disp, iproc)
     #----------------------------------------
-    prefix = "distance_"+"{:+09.5f}".format(distance)
+    prefix = jobname + "_distance_" + "{:05.3f}".format(distance)
     #----------------------------------------
     calc = QChem(xc=QMFUNC, 
                  disp=DISPERSION,
@@ -117,14 +118,17 @@ for distance in distances_loc:
                  mem_static=400,
                  mem_total=4000,
                  label="tmp_qchem"+"{:04d}".format(iproc)+"/" + prefix)
-    E = calc.run([asemol, asemol_disp])
     #----------------------------------------
-    if (E is not None):
-        energies_loc.append((distance, E))
-        print("distance: %+09.5f, energy: %15.7f kcal/mol" % (distance, E))
+    E_10 = calc.run((asemol, asemol_disp), "_10")
+    E_01 = calc.run((asemol_disp, asemol), "_01")
+    E_11 = calc.run([asemol, asemol_disp], "_11")
+    #----------------------------------------
+    if ((E_10 is not None) and (E_01 is not None) and (E_11 is not None)):
+        energies_loc.append((distance, E_11 - E_10 - E_01))
+        print("distance: %05.3f, energy: %15.7f kcal/mol" % (distance, E_11 - E_10 - E_01))
         sys.stdout.flush()
     else:
-        print("distance: %+04.0f, interaction calculation failed" % (distance))
+        print("distance: %05.3f, interaction calculation failed" % (distance))
         sys.stdout.flush()
     #----------------------------------------
 
@@ -138,7 +142,7 @@ if (iproc == 0):
     f = open(dir_name+"/binding_energies", "w")
     #--------------------------------------------
     for i in range(0, len(energies)):
-        f.write("%+04.0f:  %15.7f\n" % (energies[i][0], energies[i][1]))
+        f.write("%05.3f:  %15.7f\n" % (energies[i][0], energies[i][1]*2625.498844780508))
     #--------------------------------------------
     f.close()
     #--------------------------------------------
