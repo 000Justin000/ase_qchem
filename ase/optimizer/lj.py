@@ -41,7 +41,7 @@ MMtol = 1.0e-8
 QMtol = 4.5e-3
 ertol = 1.0e-10
 #------------------------------------------------
-distances = [5.0, 6.0, 7.0, 8.0]
+distances = [3.0, 3.5, 4.0, 4.2, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5.0, 5.1, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 5.9, 6.0, 6.5, 7.0, 8.0, 10.0]
 #------------------------------------------------
 
 
@@ -86,9 +86,9 @@ for distance in distances_loc:
     #----------------------------------------
     coords = numpy.zeros((3,4))
     for i in range(0,4):
-        coords[0,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetX()
-        coords[1,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetY()
-        coords[2,i] = pybmol.OBMol.GetAtom(ref[0]).GetVector().GetZ()
+        coords[0,i] = pybmol.OBMol.GetAtom(ref[i]).GetVector().GetX()
+        coords[1,i] = pybmol.OBMol.GetAtom(ref[i]).GetVector().GetY()
+        coords[2,i] = pybmol.OBMol.GetAtom(ref[i]).GetVector().GetZ()
     #----------------------------------------
     coords = coords - numpy.mean(coords, axis=1).reshape((3,1))
     u,s,v = numpy.linalg.svd(coords)
@@ -99,7 +99,7 @@ for distance in distances_loc:
     asemol = pyb2ase(pybmol, iproc)
     asemol_disp = pyb2ase(pybmol_disp, iproc)
     #----------------------------------------
-    prefix = "distance_"+"{:+09.5f}".format(distance)
+    prefix = jobname + "_distance_" + "{:05.3f}".format(distance)
     #----------------------------------------
     calc = QChem(xc=QMFUNC, 
                  disp=DISPERSION,
@@ -121,10 +121,10 @@ for distance in distances_loc:
     #----------------------------------------
     if (E is not None):
         energies_loc.append((distance, E))
-        print("distance: %+09.5f, energy: %15.7f kcal/mol" % (distance, E))
+        print("distance: %5.3f, energy: %15.7f kcal/mol" % (distance, E))
         sys.stdout.flush()
     else:
-        print("distance: %+04.0f, interaction calculation failed" % (distance))
+        print("distance: %05.3f, interaction calculation failed" % (distance))
         sys.stdout.flush()
     #----------------------------------------
 
@@ -138,7 +138,7 @@ if (iproc == 0):
     f = open(dir_name+"/binding_energies", "w")
     #--------------------------------------------
     for i in range(0, len(energies)):
-        f.write("%+04.0f:  %15.7f\n" % (energies[i][0], energies[i][1]))
+        f.write("%05.3f:  %15.7f\n" % (energies[i][0], energies[i][1]))
     #--------------------------------------------
     f.close()
     #--------------------------------------------
