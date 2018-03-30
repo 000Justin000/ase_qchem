@@ -121,7 +121,7 @@ for distance in distances_loc:
     #----------------------------------------
     if (E is not None):
         energies_loc.append((distance, E))
-        print("distance: %5.3f, energy: %15.7f kcal/mol" % (distance, E))
+        print("distance: %5.3f, energy: %15.7f kJ/mol" % (distance, E))
         sys.stdout.flush()
     else:
         print("distance: %05.3f, interaction calculation failed" % (distance))
