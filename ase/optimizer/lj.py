@@ -34,8 +34,8 @@ ref = [int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])]  
 MMFF       = "mmff94s"
 QMFUNC     = 'B3LYP'
 DISPERSION = 'd3_op'
-# QMBASIS    = '6-31G*'
-QMBASIS    = 'STO-3G'
+QMBASIS    = '6-311++G**'
+# QMBASIS    = 'STO-3G'
 TASK       = 'single_point'
 #------------------------------------------------
 MMtol = 1.0e-8
@@ -125,7 +125,7 @@ for distance in distances_loc:
     #----------------------------------------
     if ((E_10 is not None) and (E_01 is not None) and (E_11 is not None)):
         energies_loc.append((distance, E_11 - E_10 - E_01))
-        print("distance: %05.3f, energy: %15.7f kcal/mol" % (distance, E_11 - E_10 - E_01))
+        print("distance: %05.3f, energy: %15.7f kJ/mol" % (distance, E_11 - E_10 - E_01))
         sys.stdout.flush()
     else:
         print("distance: %05.3f, interaction calculation failed" % (distance))
